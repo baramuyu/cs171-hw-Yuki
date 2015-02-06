@@ -1,0 +1,1 @@
+Alternatively there's the Python solution: (1) navigate a console to the folder, (2) enter python -m SimpleHTTPServer 8888, then (3) navigate browser to http://localhost:8888/ 

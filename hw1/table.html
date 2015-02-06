@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<head>
+  <style>
+    table{
+      border-collapse: collapse;
+    }
+    table,th,td, caption {
+        /*To add solid lines in the cells*/
+          border: solid 1px black;
+        }
+
+  </style>
+</head>
+  <body>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+
+    var sorting = ""
+    var contdata
+
+    d3.json("data/countries_2012.json", function(error, data){
+      contdata = data;
+      render(contdata);
+    });
+
+    function render(data,filt_conti){
+
+      //var columns = Object.keys(data[0]); 
+      var columns = ["name","continent","gdp","life_expectancy","population","year"];
+
+      //init
+      d3.select("body").selectAll("caption").remove();
+      d3.select("body").selectAll("thead").remove();
+      d3.select("body").selectAll("tbody").remove();
+
+      //draw table
+      var table = d3.select("body").append("table"),
+        thead = table.append("thead")
+                     .attr("class", "thead");
+        tbody = table.append("tbody");
+
+      table.append("caption")
+        .html("World Countries Ranking");
+
+      thead.append("tr").selectAll("th")
+        .data(columns)
+        .enter()
+        .append("th")
+        .text(function(d) { return d; })
+        .on("click", function(header, i) {
+          if (sorting == "desc"){
+            sorting = "asc"
+            tbody.selectAll("tr").sort(function(a, b) {
+                return d3.ascending(a[header], b[header]);
+            });
+          }
+          else{
+            sorting ="desc"
+            tbody.selectAll("tr").sort(function(a, b) {
+              return d3.descending(a[header], b[header]);
+            });
+          }
+          //background-color-stripe
+          zebra();
+        });
+
+      //tate
+      var rows = tbody.selectAll("tr.row")
+        .data(data)
+        .enter()
+        .append("tr").attr("class", "row")
+        .filter(function (d){
+            return d.continent == filt_conti;
+        });
+        
+
+        //background-color-stripe
+        zebra();
+
+      //yoko
+      var cells = rows.selectAll("td")
+        .data(function(row) {
+                return d3.range(columns.length).map(function(column, i) {
+                  if (column == 2){
+                    var rdata = row[columns[i]];
+                    var rscale = d3.formatPrefix(rdata).scale(rdata).toFixed(1);
+                    var rsymbol = d3.formatPrefix(rdata).symbol;
+                    return rscale + rsymbol;
+                  }
+                  else if (column == 3)
+                    return row[columns[i]].toFixed(1);
+                  else if (column == 4){
+                    fcomma = d3.format(",");
+                    return fcomma(row[columns[i]]);
+                  }
+                  else
+                    return row[columns[i]];
+            });
+        })
+        .enter()
+        .append("td")
+        .text(function(d) { return d; })
+
+        //ONCLICK--header
+        // d3.select("th")
+        //   .on("click", function() {
+        //   //Do something mundane and annoying on click
+        //   alert("Hey, don't click that!");
+        // });
+
+    };
+    
+    
+
+    //background-color-stripe
+    function zebra(){
+        tbody.selectAll("tr").style("background-color",function(d, i){
+            if(i%2 == 0){
+                return "#D8D8D8";
+            }
+            else{
+                return "white";
+            }
+        }); 
+    }
+
+    //when checkbox is checked
+    function boxchanged(){
+        //filter
+        console.log("changed!");
+        d3.selectAll("input").each(function(d) { 
+          if(d3.select(this).attr("type") == "checkbox" && d3.select(this).node().checked) {
+              // Current name of the checkbox is d3.select(this).attr("name")
+              console.log(d3.select(this).attr("name"));
+              render(contdata,d3.select(this).attr("name"));
+          }
+        })
+    }
+    </script> 
+
+      <label>Americas
+        <input type="checkbox" name="Americas" value="Americas" title="Americas" onchange="boxchanged()">
+        </input>
+      </label>
+  </body>
+</html>

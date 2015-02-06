@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+  <body>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+      var sorting = ""
+      var selectcol = ["name","continent","gdp","life_expectancy","population","year"];
+
+      d3.json("data/countries_2012.json", function(error, data){
+
+        <!-- var columns = Object.keys(data[0]); -->
+        var columns = selectcol;
+        var sort = "";
+
+        var table = d3.select("body").append("table"),
+          thead = table.append("thead")
+                       .attr("class", "thead");
+          tbody = table.append("tbody");
+
+        table.append("caption")
+          .html("World Countries Ranking");
+
+        thead.append("tr").selectAll("th")
+          .data(columns)
+          .enter()
+          .append("th")
+          .text(function(d) { return d; })
+          //.on("click", function(header, i) {
+          //  tbody.selectAll("tr").sort(function(a, b) {
+          //      return d3.descending(a[header], b[header]);
+          //  });
+          //});
+          .on("click", function(header, i) {
+            if (sorting == "desc"){
+              sorting = "asc"
+              tbody.selectAll("tr").sort(function(a, b) {
+                  return d3.ascending(a[header], b[header]);
+              });
+            }
+            else{
+              sorting ="desc"
+              tbody.selectAll("tr").sort(function(a, b) {
+                return d3.descending(a[header], b[header]);
+              });
+            }
+          });
+
+
+
+        var rows = tbody.selectAll("tr.row")
+          .data(data)
+          .enter()
+          .append("tr").attr("class", "row");
+
+        var cells = rows.selectAll("td")
+          .data(function(row) {
+                  return d3.range(selectcol.length).map(function(column, i) {
+                    if (column == 2){
+                      var rdata = row[selectcol[i]];
+                      var rscale = d3.formatPrefix(rdata).scale(rdata).toFixed(1);
+                      var rsymbol = d3.formatPrefix(rdata).symbol;
+                      return rscale + rsymbol;
+                    }
+                    else if (column == 3)
+                      return row[selectcol[i]].toFixed(1);
+                    else if (column == 4){
+                      fcomma = d3.format(",");
+                      return fcomma(row[selectcol[i]]);
+                    }
+                    else
+                      return row[selectcol[i]];
+              });
+          })
+          .enter()
+          .append("td")
+          .text(function(d) { return d; })
+
+      });
+    </script> 
+  </body>
+</html>
