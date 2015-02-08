@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<head>
+  <style>
+body {font-family: sans;}
+h4 {margin: 0px;}
+table {border-collapse: collapse; margin: 4px;}
+th {text-align: left; background: #EEE;}
+th, td {width: 60px; padding: 4px; border:1px solid black;}
+
+  </style>
+</head>
+  <body>
+    <!--<script src="http://d3js.org/d3.v3.min.js"></script> -->
+    <script src="d3.min.js"></script>
+    <script>
+var cols = ['title','id', 'apples', 'oranges', 'pears', 'kiwis', 'peaches', 'name'];
+var dataset = [{
+    'title': 'foo',
+        'child': [{
+        'id': 0,
+            'apples': 3,
+            'oranges': 2,
+            'pears': 0,
+            'kiwis': 18,
+            'peaches': 7,
+            'name': 'foo'
+    }, {
+        'id': 1,
+            'apples': 3,
+            'oranges': 6,
+            'pears': 10,
+            'kiwis': 1,
+            'peaches': 4,
+            'name': 'foo'
+    }]
+}, {
+    'title': 'bar',
+        'child': [{
+        'id': 2,
+            'apples': 12,
+            'oranges': 2,
+            'pears': 111,
+            'kiwis': 13,
+            'peaches': 12,
+            'name': 'bar'
+    }]
+}];
+
+//var sections = d3.select('#container')
+//    .selectAll('div.parent')
+//    .data(dataset);
+
+//var sectionsEnter = sections.enter()
+//    .append('div')
+//    .attr('class', 'parent');
+
+var sections = d3.select('body')
+    .selectAll('table.parent')
+    .data(dataset);
+
+var sectionsEnter = sections.enter()
+    .append('table')
+    .attr('class', 'parent');
+
+// don't use selectAll/data/enter to append children that 
+// just inherit parent's data
+sectionsEnter.append('h4')
+    .text(function(d){
+        return d.title;
+    });
+
+// append table and tr.headings row, still don't need selectAll/data/enter
+sectionsEnter.append('table')
+    .attr('class', 'parent')
+    .append('tr')
+    .attr('class', 'thead');
+
+// selecting tables picks up previously inherited data
+var tables = sections.selectAll('table');
+
+var colHeadings = tables.select('tr.thead')
+    .selectAll('th')
+    .data(cols)
+
+colHeadings.enter()
+    .append('th')
+    .text(function (d) {
+        return d;
+    });
+
+// one row per child
+var rows = tables.selectAll('tr.row')
+    .data(function (d) {
+        return d.child;
+    });   
+//var rows = tables.selectAll('tr.row')
+//    .data(dataset)
+
+rows.enter()
+    .append('tr')
+    .attr('class', 'rows');
+
+var cells = rows.selectAll('td')
+    //.data(function(d) {
+        // return cell data as an array of prop values, 
+        // ordered according to prop names in cols
+    //    return cols.map(function(prop) {
+    //        return d[prop];
+    //    })
+        //return cols.map(function(row,i){ return row[cols[i]]});
+    //});
+    .data(function(row) {
+        return d3.range(cols.length).map(function(column, i){
+            return row[cols[i]];
+        })
+    });
+
+
+cells.enter()
+    .append('td')
+    .text(function (d) {
+        return d;
+    });
+    </script>
+  </body>
+</html>

@@ -13,15 +13,6 @@
     tr:hover td{
         background-color: LemonChiffon;
     }
-    .col_gdp td:nth-child(3) {
-        text-align: right
-    }
-    .col-life td:nth-child(4) {
-        text-align: right
-    }
-    .col-population td:nth-child(5) {
-        text-align: right
-    }
 
   </style>
 </head>
@@ -33,7 +24,7 @@
     var sorting = ""
     var dataset
 
-    d3.json("data/countries_2012.json", function(error, data){
+    d3.json("data/countries_1995_2012.json", function(error, data){
       dataset = data;
       render(dataset,[]);
     });
@@ -47,11 +38,11 @@
       d3.select("body").selectAll("table").remove();
 
       //draw table
-      var table = d3.select("body").append("table"),
+      var table = d3.select("body").append("table")
+                    .data(dataset),
         thead = table.append("thead")
-                  .attr("class", "thead");
-        tbody = table.append("tbody")
-                  .attr("class", "col_gdp col-life col-population");
+                     .attr("class", "thead");
+        tbody = table.append("tbody");
 
       table.append("caption")
         .html("World Countries Ranking");
@@ -80,7 +71,8 @@
 
       //tate
       var rows = tbody.selectAll("tr.row")
-        .data(dataset)
+        //.data(dataset)
+        .data(function(d){return d.years})
         .enter()
         .append("tr").attr("class", "row")
         .filter(function (d){
@@ -111,10 +103,13 @@
                   //population
                   else if (column == 4){
                     fcomma = d3.format(",");
-                    return fcomma(row[columns[i]].toFixed(0));
+                    return fcomma(row[columns[i]]);
                   }
                   else
-                    return row[columns[i]];
+                  return row[columns[i]];
+                  // return columns.map(function(prop){
+                  //   return d[prop];
+                  // });
             });
         })
         .enter()
@@ -176,25 +171,24 @@
       if (aggr_on){
         var nested_rows = d3.nest()
           .key(function(d) { return d.continent; })
-          .key(function(d){return d.year})
           .rollup(function(leaves) { 
             return {
+              "name": "aaaa",
+              "continent": "aaaa",
               "gdp": d3.sum(leaves, function(d){return d.gdp;}),
-              "life_expectancy": d3.mean(leaves,function(d){return d.life_expectancy}),
-              "population": d3.mean(leaves, function(d){return d.population;})
+              "life_expectancy": "1111",
+              "population": d3.sum(leaves, function(d){return d.population;}),
+              "year": "aaa"
             }
           }) // Where aggregation happens
           .entries(dataset);
           //.map(dataset,d3.map)
 
           //render
-          flat_results = nested_rows.map(function(d){
-            return {name:d.key,continent:d.key,year:d.values[0].key,gdp:d.values[0].values.gdp,life_expectancy:d.values[0].values.life_expectancy,population:d.values[0].values.population};
-          })
-          render(flat_results,[]);
+          render(dataset,[]);
 
       }else{
-            render(dataset,[]);
+            render(nested_rows,[]);
       };
     }
 
