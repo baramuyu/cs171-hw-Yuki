@@ -22,6 +22,18 @@
     .col-population td:nth-child(5) {
         text-align: right
     }
+    tr:nth-child(odd) {
+        background: #FFCCCC;
+    }
+    tr:nth-child(even) {
+        background: white;
+    }
+    th{
+        background-color: #CCFFFF;
+    }
+    caption{
+        background-color: #99CCFF;
+    }
 
   </style>
 </head>
@@ -73,9 +85,9 @@
             tbody.selectAll("tr").sort(function(a, b) {
               return d3.descending(a[header], b[header]);
             });
-          }
+          };
           //background-color-stripe
-          zebra();
+          // zebra();
         });
 
       //tate
@@ -119,7 +131,7 @@
         })
         .enter()
         .append("td")
-        .text(function(d) { return d; })
+        .text(function(d) { return d; });
 
         //ONCLICK--header
         // d3.select("th")
@@ -129,22 +141,22 @@
         // });
 
         //background-color-stripe
-        zebra();
+        // zebra();
     };
     
     
 
     //background-color-stripe
-    function zebra(){
-        tbody.selectAll("tr").style("background-color",function(d, i){
-            if(i%2 == 0){
-                return "#D8D8D8";
-            }
-            else{
-                return "white";
-            }
-        }); 
-    }
+    // function zebra(){
+        // tbody.selectAll("tr").style("background-color",function(d, i){
+        //     if(i%2 == 0){
+        //         return "#D8D8D8";
+        //     }
+        //     else{
+        //         return "white";
+        //     }
+        // }); 
+    // }
 
     //when checkbox is checked
     function boxchanged(){
