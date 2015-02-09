@@ -34,25 +34,6 @@
     caption{
         background-color: #99CCFF;
     }
-    input[type='range'] {
-      -webkit-appearance: none;
-      box-shadow: inset 0 0 5px #333;
-      background-color: #999;
-      height: 5px;
-      width: 250px;
-    }
-
-    input[type='range']::-webkit-slider-thumb {
-      -webkit-appearance: none !important;
-      border-radius: 20px;
-      background-color: #FFF;
-      box-shadow:inset 0 0 10px rgba(000,000,000,0.5);
-      border: 1px solid #999;
-      height: 20px;
-      width: 20px;
-    }
-
-
 
   </style>
 </head>
@@ -62,43 +43,29 @@
     <script>
 
     var sorting = ""
-    var dataset = []
-    var dyear = []
+    var dataset
 
     d3.json("data/countries_1995_2012.json", function(error, data){
+      dataset = data;
       //render
-      data.map(function(d,i){
+      var tmpdata = []
+      dataset.map(function(d,i){
             for (i = 0; i < d.years.length; i++) {
                 var dat = {
-                  name: d.name,
-                  continent: d.continent,
-                  gdp: d.years[i].gdp,
-                  life_expectancy: d.years[i].life_expectancy,
-                  population: d.years[i].population,
-                  year: d.years[i].year
+                  name:d.name,
+                  continent:d.continent,
+                  gdp:d.years[i].gdp,
+                  life_expectancy:d.years[i].life_expectancy,
+                  population:d.years[i].population,
+                  year:d.years[i].year
                 };
             
-                dataset.push(dat);
-
-                //for min and max
-                dyear.push(d.years[i].year);
-
+                tmpdata.push(dat);
             }
                 return             
       });
-
-      //Time update
-      //Min
-      var labelmin = document.getElementById('yearmin');
-      var year_min = d3.min(dyear);
-      labelmin.textContent = year_min;
-      //Max
-      var labelmax = document.getElementById('yearmax');
-      var year_max = d3.max(dyear)
-      labelmax.textContent = year_max;
-
-      //render(dataset,[]);
-      rangechanged(1995);
+      dataset = tmpdata;
+      render(dataset,[]);
     });
 
     function render(dataset,filt_conti){
@@ -194,6 +161,8 @@
         //background-color-stripe
         //zebra();
     };
+    
+
 
     //when checkbox is checked
     function boxchanged(){
@@ -205,6 +174,7 @@
           if(d3.select(this).attr("type") == "checkbox" && d3.select(this).node().checked) {
               // Current name of the checkbox is d3.select(this).attr("name")
               selConti.push(d3.select(this).attr("name"));
+
           }
         })
         render(dataset,selConti);
@@ -246,34 +216,8 @@
       };
     }
 
-    //Range
-    function rangechanged(newVal){
-        console.log(newVal);
-        //dataset = (function(d,i){
-        //console.log(dataset.years.indexOf("2012"));
-        //    return;
-        //});
-        //console.log(dataset.)
-        var indexed_data = []
-        var tmpdata = []
-        dataset.map(function(d,i){
-            if (d.year == newVal){
-                tmpdata.push(d);  
-            }
-            indexed_data[newVal] = tmpdata
-        });
-
-        //render
-        render(indexed_data[newVal],[]);
-    }
-
     </script> 
-    <P>
-      Time update: 
-      <label id="yearmin" value="">----</label>
-      <input type="range" name="points" min="1995" max="2012" step="1" value="0" id="slider-time" oninput="rangechanged(this.value)"> 
-      <label id="yearmax" value="">----</label>
-      </br>Filter by: 
+    <P>Filter by: 
       <label>
         <input type="checkbox" name="Americas" value="Americas" title="Americas" onchange="boxchanged()">
         </input>Americas
@@ -297,8 +241,7 @@
       <br>
       Aggregation:
       <label><input type="radio" name="aggr" value="False" onchange="radiochanged()" checked="checked">None
-      <input type="radio" name="aggr" value="True" onchange="radiochanged()" >by Continent</label>
-
+      <input type="radio" name="aggr" value="True" onchange="radiochanged()" >by Continent</label>     
     </P>
   </body>
 </html>
