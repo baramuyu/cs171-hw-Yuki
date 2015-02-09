@@ -40,7 +40,6 @@
       background-color: #999;
       height: 5px;
       width: 250px;
-      vertical-align: 4px;
     }
 
     input[type='range']::-webkit-slider-thumb {
@@ -53,6 +52,8 @@
       width: 20px;
     }
 
+
+
   </style>
 </head>
   <body>
@@ -63,10 +64,6 @@
     var sorting = ""
     var dataset = []
     var dyear = []
-    var selectedYear = ""
-    var selDataset = []
-    var aggr_on = "";
-    var selConti = [];
 
     d3.json("data/countries_1995_2012.json", function(error, data){
       //render
@@ -87,7 +84,7 @@
                 dyear.push(d.years[i].year);
 
             }
-                return;         
+                return             
       });
 
       //Time update
@@ -95,14 +92,13 @@
       var labelmin = document.getElementById('yearmin');
       var year_min = d3.min(dyear);
       labelmin.textContent = year_min;
-      selectedYear = year_min;
       //Max
       var labelmax = document.getElementById('yearmax');
       var year_max = d3.max(dyear)
       labelmax.textContent = year_max;
 
       //render(dataset,[]);
-      rangechanged(year_min);
+      rangechanged(1995);
     });
 
     function render(dataset,filt_conti){
@@ -199,11 +195,11 @@
         //zebra();
     };
 
-    //Filter-when checkbox is checked
+    //when checkbox is checked
     function boxchanged(){
-        selConti = [];
-        //time update
-        rangechanged(selectedYear);
+        //filter
+        console.log("changed!");
+        var selConti = [];
 
         d3.selectAll("input").each(function(d) {  
           if(d3.select(this).attr("type") == "checkbox" && d3.select(this).node().checked) {
@@ -211,15 +207,12 @@
               selConti.push(d3.select(this).attr("name"));
           }
         })
-        if (aggr_on)
-          radiochanged();
-        else
-          render(selDataset,selConti);
+        render(dataset,selConti);
     }
 
     //when aggrigation on
     function radiochanged(){
-      aggr_on = false;
+      var aggr_on = false;
       d3.selectAll("input").each(function(d) {
           if(d3.select(this).attr("type") == "radio" && d3.select(this).node().checked) {
               // Current name of the checkbox is d3.select(this).attr("name")
@@ -231,7 +224,7 @@
       if (aggr_on){
         var nested_rows = d3.nest()
           .key(function(d) { return d.continent; })
-          .key(function(d){ return d.year; })
+          .key(function(d){return d.year})
           .rollup(function(leaves) { 
             return {
               "gdp": d3.sum(leaves, function(d){return d.gdp;}),
@@ -239,30 +232,30 @@
               "population": d3.mean(leaves, function(d){return d.population;})
             }
           }) // Where aggregation happens
-          .entries(selDataset);
+          .entries(dataset);
           //.map(dataset,d3.map)
 
           //render
           flat_results = nested_rows.map(function(d){
             return {name:d.key,continent:d.key,year:d.values[0].key,gdp:d.values[0].values.gdp,life_expectancy:d.values[0].values.life_expectancy,population:d.values[0].values.population};
           })
-          render(flat_results,selConti);
+          render(flat_results,[]);
 
       }else{
-          //No Aggregation
-          rangechanged(selectedYear);
+            render(dataset,[]);
       };
     }
 
     //Range
     function rangechanged(newVal){
-
+        console.log(newVal);
+        //dataset = (function(d,i){
+        //console.log(dataset.years.indexOf("2012"));
+        //    return;
+        //});
+        //console.log(dataset.)
         var indexed_data = []
         var tmpdata = []
-
-        //preserve in Global
-        selectedYear = newVal;
-
         dataset.map(function(d,i){
             if (d.year == newVal){
                 tmpdata.push(d);  
@@ -270,13 +263,8 @@
             indexed_data[newVal] = tmpdata
         });
 
-        //preserve in Global
-        selDataset = indexed_data[newVal];
         //render
-        if(aggr_on == true)
-          radiochanged();
-        else
-          render(selDataset,selConti);
+        render(indexed_data[newVal],[]);
     }
 
     </script> 
