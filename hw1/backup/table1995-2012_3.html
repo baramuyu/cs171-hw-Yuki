@@ -22,18 +22,12 @@
     .col-population td:nth-child(5) {
         text-align: right
     }
-/*    tr:nth-child(odd) {
+    tr:nth-child(odd) {
         background: #FFCCCC;
     }
     tr:nth-child(even) {
         background: white;
-    }*/
-/*    .selected:nth-child(odd) {
-        background: #FFCCCC;
     }
-    .selected:nth-child(even) {
-        background: white;
-    }*/
     th{
         background-color: #CCFFFF;
     }
@@ -120,8 +114,7 @@
       d3.select("body").selectAll("table").remove();
 
       //draw table
-      var table = d3.select("body").append("table")
-                    .attr("id","mytable"),
+      var table = d3.select("body").append("table"),
         thead = table.append("thead")
                   .attr("class", "thead");
         tbody = table.append("tbody")
@@ -149,7 +142,7 @@
             });
           }
           //background-color-stripe
-          zebra();
+          //zebra();
         });
 
       //tate
@@ -165,9 +158,8 @@
                 || d.continent == filt_conti[1] 
                 || d.continent == filt_conti[2] 
                 || d.continent == filt_conti[3] 
-                || d.continent == filt_conti[4])
-        })
-        .classed("selected", true);
+                || d.continent == filt_conti[4]); 
+        });
 
       //yoko
       var cells = rows.selectAll("td")
@@ -196,8 +188,15 @@
         .append("td")
         .text(function(d) { return d; })
 
+        //ONCLICK--header
+        // d3.select("th")
+        //   .on("click", function() {
+        //   //Do something mundane and annoying on click
+        //   alert("Hey, don't click that!");
+        // });
+
         //background-color-stripe
-        zebra();
+        //zebra();
     };
 
     //Filter-when checkbox is checked
@@ -216,8 +215,6 @@
           radiochanged();
         else
           render(selDataset,selConti);
-
-        zebra();
     }
 
     //when aggrigation on
@@ -280,17 +277,6 @@
           radiochanged();
         else
           render(selDataset,selConti);
-    }
-
-    function zebra(){
-        tbody.selectAll(".selected").style("background-color",function(d, i){
-            if(i%2 == 0){
-                return "#FFCCCC";
-            }
-            else{
-                return "white";
-            }
-        }); 
     }
 
     </script> 
