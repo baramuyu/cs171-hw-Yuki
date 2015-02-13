@@ -13,7 +13,7 @@
     tr:hover td{
         background-color: LemonChiffon;
     }
-/*    .col_gdp td:nth-child(3) {
+    .col_gdp td:nth-child(3) {
         text-align: right
     }
     .col-life td:nth-child(4) {
@@ -21,15 +21,13 @@
     }
     .col-population td:nth-child(5) {
         text-align: right
-    }*/
-    /*does't work*/
+    }
 /*    tr:nth-child(odd) {
         background: #FFCCCC;
     }
     tr:nth-child(even) {
         background: white;
     }*/
-    /*does't work*/
 /*    .selected:nth-child(odd) {
         background: #FFCCCC;
     }
@@ -113,7 +111,7 @@
       rangechanged(year_min);
     });
 
-    function render(vdataset,filt_conti){
+    function render(dataset,filt_conti){
 
       //var columns = Object.keys(dataset[0]); 
       var columns = ["name","continent","gdp","life_expectancy","population","year"];
@@ -126,8 +124,8 @@
                     .attr("id","mytable"),
         thead = table.append("thead")
                   .attr("class", "thead");
-        tbody = table.append("tbody");
-                  // .attr("class", "col_gdp col-life col-population");
+        tbody = table.append("tbody")
+                  .attr("class", "col_gdp col-life col-population");
 
       table.append("caption")
         .html("World Countries Ranking");
@@ -156,7 +154,7 @@
 
       //tate
       var rows = tbody.selectAll("tr.row")
-        .data(vdataset)
+        .data(dataset)
         .enter()
         .append("tr").attr("class", "row")
         .filter(function (d){
@@ -296,7 +294,8 @@
     }
 
     </script> 
-    <P>Time update: 
+    <P>
+      Time update: 
       <label id="yearmin" value="">----</label>
       <input type="range" name="points" min="1995" max="2012" step="1" value="0" id="slider-time" oninput="rangechanged(this.value)"> 
       <label id="yearmax" value="">----</label>

@@ -60,6 +60,12 @@
       height: 20px;
       width: 20px;
     }
+    rect {
+        fill-opacity:.8;
+    }
+    text{
+        text-anchor: end;
+    }
 
   </style>
 </head>
@@ -67,6 +73,22 @@
     <!--<script src="http://d3js.org/d3.v3.min.js"></script> -->
     <script src="d3.min.js"></script>
     <script>
+
+    //BARCHART--------------------------------
+    var margin = {top: 50, bottom: 10, left:300, right: 40};
+    var width = 800 - margin.left - margin.right;
+    var height = 2200 - margin.top - margin.bottom;
+ 
+    var xScale = d3.scale.linear().range([0, width]);
+    var yScale = d3.scale.ordinal().rangeRoundBands([0, height], .8, 0);
+ 
+    var svg = d3.select("body").append("svg")
+                .attr("width", width+margin.left+margin.right)
+                .attr("height", height+margin.top+margin.bottom)
+
+    var g = svg.append("g")
+                .attr("transform", "translate("+margin.left+","+margin.top+")");
+    //------------------------------------------
 
     var sorting = ""
     var dataset = []
@@ -77,6 +99,7 @@
     var selConti = [];
 
     d3.json("data/countries_1995_2012.json", function(error, data){
+
       //render
       data.map(function(d,i){
             for (i = 0; i < d.years.length; i++) {
@@ -111,9 +134,63 @@
 
       //render(dataset,[]);
       rangechanged(year_min);
+
     });
 
+    function barchart(vdataset){
+
+        //barchart
+        var max = d3.max(vdataset, function(d) { return d.population; } );
+        var min = 0;
+
+        //high value--red, low value --yellow
+        //
+        // var color = d3.scale.linear()
+        //     .range(["yellow","red"])
+        //     .domain([min, max]);
+
+        //randam color
+        var color = d3.scale.category20();
+
+        xScale.domain([min, max]);
+        yScale.domain(vdataset.map(function(d) { return d.name; }));
+
+        var rows = g.append("g")
+                    .selectAll("g.row")
+                    .data(vdataset)
+                  .enter()
+                    .append("g")
+                    .attr("class", "row")
+
+        var bars = rows
+                    .append("rect")
+                    .attr("width", function(d) { 
+                        return xScale(d.population); })
+                    .attr("height", 9)
+                    .attr("x", xScale(min))
+                    .attr("y", function(d) { 
+                        return yScale(d.name); })
+                    .attr("fill",function(d){
+                        return color(d.population); });
+
+                  rows
+                    .append("text")
+                    .attr("x",-10)
+                    .attr("y",function(d){
+                        return yScale(d.name); })
+                    .attr("dy", ".35em")
+                    //.attr("text-anchor","end")
+                    .text(function(d) { return d.name; });
+ 
+        //barchart-end   
+
+
+    }
+
     function render(vdataset,filt_conti){
+
+      //Create barchart
+      barchart(vdataset);
 
       //var columns = Object.keys(dataset[0]); 
       var columns = ["name","continent","gdp","life_expectancy","population","year"];
@@ -200,6 +277,7 @@
 
         //background-color-stripe
         zebra();
+ 
     };
 
     //Filter-when checkbox is checked
@@ -296,7 +374,8 @@
     }
 
     </script> 
-    <P>Time update: 
+    <P>
+      Time update: 
       <label id="yearmin" value="">----</label>
       <input type="range" name="points" min="1995" max="2012" step="1" value="0" id="slider-time" oninput="rangechanged(this.value)"> 
       <label id="yearmax" value="">----</label>

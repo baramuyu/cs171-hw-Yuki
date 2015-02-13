@@ -36,27 +36,34 @@
 
   /////////////////////////
 
-  var data = [10, 45, 105, 69, 80, 55, 180];
-
   var bar_height = 50;
 
   var scale = d3.scale.linear()
     .domain([0, 200])
     .range([0, width]);
 
-  var rect = g.selectAll("rect")
-      .data(data)
-    .enter().append("rect")
-    .attr("fill", "steelblue")
-    .attr("width", function(d, i) {
-        return scale(d);
-    })
-    .attr("height", bar_height)
-    .attr("x", 0)
-    .attr("y", function(d, i) {
-        // this could instead use an ordinal scale and rangeRoundBands()
-        return (bar_height + 5) * i;
-    });
+  d3.json("weather.json", function(data) {
+
+  //var data = [10, 45, 105, 69, 80, 55, 180];
+      var rect = g.selectAll("rect")
+          .data(data)
+        .enter().append("rect")
+        .attr("fill", "steelblue")
+        .attr("width", function(d, i) {
+            return scale(d["temperature"]);
+        })
+        .attr("height", bar_height)
+        .attr("x", 0)
+        .attr("y", function(d, i) {
+            // this could instead use an ordinal scale and rangeRoundBands()
+            return (bar_height + 5) * i;
+        });
+
+      rect.append("title")
+          .text(function(d,i){
+            return d["location"]["city"];
+          });
+  });
 
   </script>
 </body>
