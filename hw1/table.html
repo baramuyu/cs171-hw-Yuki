@@ -76,16 +76,29 @@
         .on("click", function(header, i) {
           if (sorting == "desc"){
             sorting = "asc"
-            tbody.selectAll("tr").sort(function(a, b) {
-                return d3.ascending(a[header], b[header]);
-            });
+            if(header == "continent"){
+                tbody.selectAll("tr").sort(function(a, b) {
+                    return d3.ascending(a[header]+a["name"],b[header]+b["name"]);
+                });
+            }
+            else{
+                tbody.selectAll("tr").sort(function(a, b) {
+                    return d3.ascending(a[header], b[header]);
+                });
+            }
           }
           else{
             sorting ="desc"
-            tbody.selectAll("tr").sort(function(a, b) {
-              return d3.descending(a[header], b[header]);
-            });
-          };
+            if(header == "continent"){
+                tbody.selectAll("tr").sort(function(a, b) {
+                    return d3.descending(a[header]+a["name"],b[header]+b["name"]);
+                });
+            }else{
+                tbody.selectAll("tr").sort(function(a, b) {
+                  return d3.descending(a[header], b[header]);
+                });
+            }
+          }
           //background-color-stripe
           // zebra();
         });

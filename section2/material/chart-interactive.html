@@ -97,18 +97,7 @@
 
     // UPDATE
     // old elements
-    rect
-      .enter().append("rect")
-      .attr("fill", "steelblue")
-      .attr("width", function(d, i) {
-          return scale(d["temperature"]);
-      })
-      .attr("height", bar_height)
-      .attr("x", 0)
-      .attr("y", function(d, i) {
-          // this could instead use an ordinal scale and rangeRoundBands()
-          return (bar_height + 5) * i;
-      });
+
       //...
 
     // ENTER
@@ -120,16 +109,16 @@
           return scale(d["temperature"]);
       })
       .attr("height", bar_height)
-      .attr("x", 0)
-      .attr("y", function(d, i) {
-          // this could instead use an ordinal scale and rangeRoundBands()
-          return (bar_height + 5) * i;
-      });
       //...
 
     // ENTER + UPDATE
     // both old and new elements
     rect
+      .attr("x", 0)
+      .attr("y", function(d, i) {
+          // this could instead use an ordinal scale and rangeRoundBands()
+          return (bar_height + 5) * i;
+      })
       .select("title")
       .text(function(d, i) {
         return d["location"]["city"];

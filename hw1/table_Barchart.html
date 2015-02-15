@@ -70,25 +70,8 @@
   </style>
 </head>
   <body>
-    <!--<script src="http://d3js.org/d3.v3.min.js"></script> -->
     <script src="d3.min.js"></script>
     <script>
-
-    //BARCHART--------------------------------
-    var margin = {top: 50, bottom: 10, left:300, right: 40};
-    var width = 800 - margin.left - margin.right;
-    var height = 2200 - margin.top - margin.bottom;
- 
-    var xScale = d3.scale.linear().range([0, width]);
-    var yScale = d3.scale.ordinal().rangeRoundBands([0, height], .8, 0);
- 
-    var svg = d3.select("body").append("svg")
-                .attr("width", width+margin.left+margin.right)
-                .attr("height", height+margin.top+margin.bottom)
-
-    var g = svg.append("g")
-                .attr("transform", "translate("+margin.left+","+margin.top+")");
-    //------------------------------------------
 
     var sorting = ""
     var dataset = []
@@ -98,6 +81,7 @@
     var aggr_on = "";
     var selConti = [];
 
+    //DATA LOAD
     d3.json("data/countries_1995_2012.json", function(error, data){
 
       //render
@@ -118,7 +102,7 @@
                 dyear.push(d.years[i].year);
 
             }
-                return;         
+            return;         
       });
 
       //Time update
@@ -137,9 +121,28 @@
 
     });
 
+      //initialize barchart
+      var margin = {top: 20, bottom: 10, left:200, right: 40};
+      var width = 900 - margin.left - margin.right;
+      var height = {on: 2200 - margin.top - margin.bottom,
+                    off: 100 - margin.top - margin.bottom};
+   
+      var xScale = d3.scale.linear().range([0, width]);
+      var yScale = d3.scale.ordinal().rangeRoundBands([0, height.on], .8, 0);
+   
+      var svg = d3.select("body").append("svg")
+                  .attr("width", width+margin.left+margin.right)
+                  .attr("height", height.on+margin.top+margin.bottom)
+
+      var g = svg.append("g")
+                  .attr("transform", "translate("+margin.left+","+margin.top+")")
+
+
     function barchart(vdataset){
 
-        //barchart
+      //remove old table
+      d3.select("body").selectAll("g.row").remove();
+
         var max = d3.max(vdataset, function(d) { return d.population; } );
         var min = 0;
 
@@ -181,21 +184,14 @@
                     .attr("dy", ".35em")
                     //.attr("text-anchor","end")
                     .text(function(d) { return d.name; });
- 
-        //barchart-end   
-
-
-    }
+     };
 
     function render(vdataset,filt_conti){
-
-      //Create barchart
-      barchart(vdataset);
 
       //var columns = Object.keys(dataset[0]); 
       var columns = ["name","continent","gdp","life_expectancy","population","year"];
 
-      //init remove table
+      //remove old table
       d3.select("body").selectAll("table").remove();
 
       //draw table
@@ -217,16 +213,30 @@
         .on("click", function(header, i) {
           if (sorting == "desc"){
             sorting = "asc"
-            tbody.selectAll("tr").sort(function(a, b) {
-                return d3.ascending(a[header], b[header]);
-            });
+            if(header == "continent"){
+                tbody.selectAll("tr").sort(function(a, b) {
+                    return d3.ascending(a[header]+a["name"],b[header]+b["name"]);
+                });
+            }
+            else{
+                tbody.selectAll("tr").sort(function(a, b) {
+                    return d3.ascending(a[header], b[header]);
+                });
+            }
           }
           else{
             sorting ="desc"
-            tbody.selectAll("tr").sort(function(a, b) {
-              return d3.descending(a[header], b[header]);
-            });
+            if(header == "continent"){
+                tbody.selectAll("tr").sort(function(a, b) {
+                    return d3.descending(a[header]+a["name"],b[header]+b["name"]);
+                });
+            }else{
+                tbody.selectAll("tr").sort(function(a, b) {
+                  return d3.descending(a[header], b[header]);
+                });
+            }
           }
+
           //background-color-stripe
           zebra();
         });
@@ -236,16 +246,16 @@
         .data(vdataset)
         .enter()
         .append("tr").attr("class", "row")
-        .filter(function (d){
-            if (filt_conti.length == 0)
-              return d.continent;
-            else
-              return (d.continent == filt_conti[0]
-                || d.continent == filt_conti[1] 
-                || d.continent == filt_conti[2] 
-                || d.continent == filt_conti[3] 
-                || d.continent == filt_conti[4])
-        })
+        // .filter(function (d){
+        //     if (filt_conti.length == 0)
+        //       return d.continent;
+        //     else
+        //       return (d.continent == filt_conti[0]
+        //         || d.continent == filt_conti[1] 
+        //         || d.continent == filt_conti[2] 
+        //         || d.continent == filt_conti[3] 
+        //         || d.continent == filt_conti[4])
+        // })
         .classed("selected", true);
 
       //yoko
@@ -277,7 +287,10 @@
 
         //background-color-stripe
         zebra();
- 
+
+        //create barchart
+        barchart(vdataset);
+
     };
 
     //Filter-when checkbox is checked
@@ -292,10 +305,22 @@
               selConti.push(d3.select(this).attr("name"));
           }
         })
+
+        var filDataset = selDataset.filter(function(d){
+            if (selConti.length == 0)
+              return d.continent;
+            else
+              return (d.continent == selConti[0]
+                || d.continent == selConti[1] 
+                || d.continent == selConti[2] 
+                || d.continent == selConti[3] 
+                || d.continent == selConti[4])          
+        })
+
         if (aggr_on)
           radiochanged();
         else
-          render(selDataset,selConti);
+          render(filDataset,selConti);
 
         zebra();
     }
@@ -329,11 +354,26 @@
           flat_results = nested_rows.map(function(d){
             return {name:d.key,continent:d.key,year:d.values[0].key,gdp:d.values[0].values.gdp,life_expectancy:d.values[0].values.life_expectancy,population:d.values[0].values.population};
           })
+
+          //barchart
+          svg
+           .attr("height", height.off+margin.top+margin.bottom);
+          yScale = d3.scale.ordinal().rangeRoundBands([0, height.off], .8, 0);
+
+          barchart(flat_results);
+
           render(flat_results,selConti);
 
       }else{
           //No Aggregation
           rangechanged(selectedYear);
+
+          //barchart
+          svg
+           .attr("height", height.on+margin.top+margin.bottom);
+          yScale = d3.scale.ordinal().rangeRoundBands([0, height.on], .8, 0);
+
+          barchart(selDataset);
       };
     }
 
