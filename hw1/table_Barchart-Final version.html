@@ -3,56 +3,145 @@
 <meta charset="utf-8">
 <head>
   <style>
+    body {
+        padding-left: 20px;
+    }
+    #settings{
+        border-style: none;
+    }
+    #mytable {
+        border-collapse: collapse;
+    }
+    #mytable, #mytable th, #mytable td, caption {
+        /*To add solid lines in the cells*/
+        border: solid 1px black;
+    }
+    #mytable tr:hover td{
+        background-color: LemonChiffon;
+    }
+    th{
+        cursor:pointer;
+        background-color: #CCFFFF;
+    }
+    caption{
+        background-color: #99CCFF;
+    }
+    input[type='range'] {
+        -webkit-appearance: none;
+        box-shadow: inset 0 0 5px #333;
+        background-color: #999;
+        height: 5px;
+        width: 250px;
+        vertical-align: 4px;
+    }
 
-  .link {
-    stroke: gray;
-    stroke-width: .8px;
-  }
+    input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none !important;
+        border-radius: 20px;
+        background-color: #FFF;
+        box-shadow:inset 0 0 10px rgba(000,000,000,0.5);
+        border: 1px solid #999;
+        height: 20px;
+        width: 20px;
+    }
+    .col_name td:nth-child(1){
+        text-align: left;
+        width: 160px;
+    }
+    .col_conti td:nth-child(2){
+        text-align: left;
+        width: 72px;
+    }
+    .col_gdp td:nth-child(3) {
+        text-align: right;
+        width: 60px;
+    }
+    .col_life td:nth-child(4) {
+        text-align: right;
+        width: 125px;
+    }
+    .col_pop td:nth-child(5) {
+        text-align: right;
+        width: 98px;
+    }
+    .col_year td:nth-child(6) {
+        text-align: left;
+        width: 52px;
+    }
+    rect {
+        fill-opacity:.8;
+    }
+    text{
+        text-anchor: end;
+    }
 
-  .node {
-    fill: white;
-    stroke: #000;
-    stroke-width: .9px;
-  }
-
-  .node:hover {
-    fill: black;
-  }
-  .text{
-	fill: black;
-	stroke-width: 0px;
-  }
   </style>
 </head>
-<body>
-	<form>
-		Ranking: 
-		<label><input type="radio" name="ranking" value="norank" checked> none</label>
-		<label><input type="radio" name="ranking" value="rank" >ranking</label>
-		</form>
-		<form>
-		Layout:
-		<label><input type="radio" name="layout" value="force" checked> Force</label>
-		<label><input type="radio" name="layout" value="random" > Random</label>
-		<label><input type="radio" name="layout" value="circular"> Circular</label>  
-		<label><input type="radio" name="layout" value="line"> Line</label>
-		<label><input type="radio" name="layout" value="line_cat"> Line by Category</label>
-		</form>
-		<form>
-		Color:
-		<label><input type="radio" name="color" value="nocolor" checked> None</label>
-		<label><input type="radio" name="color" value="color_cat" > Category</label>
-		</form>
-		<form>
-		Size:
-		<label><input type="radio" name="size" value="nosize" checked> None</label>
-		<label><input type="radio" name="size" value="size_cat" > Category</label>
-	</form>
+  <body>
+    <table id="settings" border-style="none">
+      <tr border-style="none">
+        <td border-style="none">Time update:
+        </td>
+        <td><label id="yearmin" value="">----</label>
+          <input type="range" name="points" min="1995" max="2012" step="1" value="0" id="slider-time" oninput="rangechanged(this.value)">
+          <label id="yearmax" value="">----</label>
+        </td>
+      </tr>
+      <tr>
+        <td>Encode bars by:
+        </td>
+        <td>
+            <input type="radio" name="encode" value="pop" onchange="distributeFunc()" checked="checked">Population
+            <input type="radio" name="encode" value="gdp" onchange="distributeFunc()" >GDP
+        </td>
+      </tr>
+        <td>Filter by:
+        </td>
+        <td>
+          <input type="checkbox" name="Americas" value="Americas" title="Americas" onchange="distributeFunc();">
+          </input>Americas
+        <label>
+        <input type="checkbox" name="Africa" value="Africa" title="Africa" onchange="distributeFunc()">
+        </input>Africa
+        </label>
+        <label>
+        <input type="checkbox" name="Asia" value="Asia" title="Asia" onchange="distributeFunc()">
+        </input>Asia
+        </label>
+        <label>
+        <input type="checkbox" name="Europe" value="Asia" title="Europe" onchange="distributeFunc()">
+        </input>Europe
+        </label>
+        <label>
+        <input type="checkbox" name="Oceania" value="Oceania" title="Oceania" onchange="distributeFunc()">Oceania
+        </input>
+        </label>
+        </td>
+      </tr>
+      <tr>
+        <td>Aggregate by:
+        </td>
+        <td>
+          <label>
+            <input type="radio" name="aggr" value="True" onchange="distributeFunc()">Continent
+            <input type="radio" name="aggr" value="False" onchange="distributeFunc()" checked="checked">Country
+          </label>
+        </td>
+      </tr>
+      <tr>
+        <td>Sort by:
+        </td>
+        <td>
+          <input type="radio" name="sort" value="name" onchange="distributeFunc()" checked="checked">Name
+          <input type="radio" name="sort" value="pop" onchange="distributeFunc()">Population
+          <input type="radio" name="sort" value="gdp" onchange="distributeFunc()">GDP
+        </td>
+      </tr>
+    </table>
     <script src="d3.min.js"></script>
     <script>
 
     var sorting = ""; //status of sorting 'asc' or 'desc'
-    var lastSelectedCol = ""; //selected column for sorting last time 
     var dataset = []; //mapped data
     var dyear = []; //tmp variable for min/max year
     var selectedYear = ""; //hold selected year in range
@@ -60,198 +149,73 @@
     var aggr_on = ""; //status of aggrigation
     var selConti = []; //selection of continents among filter checkbox
 
-    //initialize barchart(Gloval)
-	var margin = {top: 10, bottom: 10, left: 300, right: 40};
-	var width = 900 - margin.left - margin.right;
-	var height = 1600 - margin.top - margin.bottom;
-
-	var svg = d3.select("body").append("svg")
-	            .attr("width", width)
-	            .attr("height", height);
-
-	var fill = d3.scale.category10();
-
-	var graph = {nodes: [], links: []};
-
-	var yScale = d3.scale.ordinal().rangeRoundBands([10, height], .8, 0);
-
-	var nb_nodes = 100, nb_cat = 1;
-
-	var node_scale = d3.scale.linear();
-
-	//SETTING GRAPH.NODES
-	graph.nodes = d3.range(119).map(function() {  
-	  return { 
-	    cat: nb_cat
-	  }; 
-	})
-
-	// Generate the force layout
-	var force = d3.layout.force()
-	    .size([width, height])
-	    //.charge(-10) //between nodes, so they will repel each other more
-	    //.linkDistance(10) //the length of the edges between connected nodes
-	    .on("tick", tick)
-	    .on("start", function(d) {}) //animation
-	    .on("end", function(d) {}) //animation
-
- 	var node = svg.selectAll(".node")
-            .data(graph.nodes)
-            .enter()
-            .append("g").attr("class", "node");
-
-	node.append("circle")
-	    .attr("r", 5);
-
-	node.append("text")
-		.attr("x", 10)
-		.attr("y", 4)
-		.attr("class","text")
-		.text("test");
-
-
-
     //DATA LOAD
     d3.json("data/countries_1995_2012.json", function(error, data){
 
-		//mapping
-		data.map(function(d,i){
-		    for (i = 0; i < d.years.length; i++) {
-		        var dat = {
-		          name: d.name,
-		          continent: d.continent,
-		          gdp: d.years[i].gdp,
-		          life_expectancy: d.years[i].life_expectancy,
-		          population: d.years[i].population,
-		          year: d.years[i].year
-		        };
+      //mapping
+      data.map(function(d,i){
+            for (i = 0; i < d.years.length; i++) {
+                var dat = {
+                  name: d.name,
+                  continent: d.continent,
+                  gdp: d.years[i].gdp,
+                  life_expectancy: d.years[i].life_expectancy,
+                  population: d.years[i].population,
+                  year: d.years[i].year
+                };
 
-		        dataset.push(dat);
+                dataset.push(dat);
 
-		        //for year min and max
-		        dyear.push(d.years[i].year);
-		    }
-		});
+                //for year min and max
+                dyear.push(d.years[i].year);
 
-		rangechanged("2012");
+            }
+      });
 
-		selDataset = selDataset.sort(function(a, b) {
-                return d3.descending(a["population"], b["population"]);
-      	});
+      //Time update
+      //Year Min
+      var labelmin = document.getElementById('yearmin');
+      var year_min = d3.min(dyear);
+      //Set to label 
+      labelmin.textContent = year_min;
+      selectedYear = year_min;
+      //Year Max
+      var labelmax = document.getElementById('yearmax');
+      var year_max = d3.max(dyear);
+      //Set to label 
+      labelmax.textContent = year_max;
 
-	  	//scale-----
-      	yScale.domain(selDataset.map(function(d) {
-             return d.name;
-      	}));
-	
-		node_scale
-			.domain([0, selDataset[0].population])
-			.range([5, height-20]);
+      //apply min year 
+      rangechanged(year_min);
+    });
 
-		force_layout(selDataset);
+    //initialize barchart(Gloval)
+    var margin = {top: 15, bottom: 10, left:200, right: 40};
+    var width = 900 - margin.left - margin.right;
+    var height = 2000 - margin.top - margin.bottom;
 
-	}); //End json loading
+    var xScale = d3.scale.linear().range([0, width]);
+    var yScale = d3.scale.ordinal().rangeRoundBands([0, height], .8, 0);
 
-	function tick(d) {
-	  graph_update(100);
-	}
+    var svg = d3.select("body").append("svg")
+                .attr("width", width+margin.left+margin.right)
+                .attr("height", height+margin.top+margin.bottom)
 
-	function force_layout(vdataset) {
-		force.nodes(graph.nodes)
-		      //.links(graph.links)
-		      .start();
+    var g = svg.append("g")
+                .attr("transform", "translate("+margin.left+","+margin.top+")")
+    //randam color
+    var color = d3.scale.category20();
 
-		//LINE--------
-		force.stop();
-
-		graph.nodes.forEach(function(d, i) {
-		d.x = width/2;
-		d.y = yScale(vdataset[i].name);
-		d.cat = vdataset[i].name;
-		})
-
-		graph_update(500);
-		//-------------
-	}
-
-	function graph_update(duration) {
-
-	  node.transition().duration(duration)
-	      .attr("transform", function(d) { 
-	        return "translate("+d.x+","+d.y+")"; 
-	      })
-	      .attr("id",function(d){
-	      	return d.cat;
-	      })
-	      .select("text")
-	      .text(function(d){ return d.cat});
-		  
-	}
-
-	function graph_update_rank() {
-
-	  force.stop();
-
-	  graph.nodes.forEach(function(d, i) {
-	    d.y = height-node_scale(selDataset[i].population);
-	  })
-
-	  graph_update(500);
-	}
-
-
-	function graph_update_norank() {
-
-	  force.stop();
-
-	  graph.nodes.forEach(function(d, i) {
-	    d.y = yScale(d.cat);
-	  })
-
-	  graph_update(500);
-	}
-
-	d3.select("input[value=\"rank\"]").on("click", graph_update_rank);
-	d3.select("input[value=\"norank\"]").on("click", graph_update_norank);
-
-	// d3.select("input[value=\"force\"]").on("click", force_layout);
-	// d3.select("input[value=\"random\"]").on("click", random_layout);
-	// d3.select("input[value=\"line\"]").on("click", line_layout);
-	// d3.select("input[value=\"line_cat\"]").on("click", line_cat_layout);
-	// d3.select("input[value=\"circular\"]").on("click", circular_layout);
-
-	// d3.select("input[value=\"nocolor\"]").on("click", function() {
-	//   d3.selectAll("circle").transition().duration(500).style("fill", "#66CC66");
-	// })
-
-	// d3.select("input[value=\"color_cat\"]").on("click", category_color);
-
-	// d3.select("input[value=\"nosize\"]").on("click", function() {
-	//   d3.selectAll("circle").transition().duration(500).attr("r", 5);
-	// })
-
-	// d3.select("input[value=\"size_cat\"]").on("click", category_size);
-
-	// var link = svg.selectAll(".link")
-	//               .data(graph.links);
-
-	// link.enter().append("line")
-	//     .attr("class", "link")
-
-
-
-
-
-
-
-
-
-
+    //when it's lorded at the first time, being true
+    var visit_first = true;
 
     function barchart_create(vdataset, vEncode){
       //SVG adjustment, height and yscale
       svg.attr("height",  vdataset.length * 18 + margin.top + margin.bottom);
       yScale = d3.scale.ordinal().rangeRoundBands([0, vdataset.length * 18], .8, 0);
+
+      //remove old table
+      //d3.select("body").selectAll("g.row").remove();
 
       //getting domain Max
       if (vEncode == "pop")
@@ -321,15 +285,26 @@
              return d.name;
       }));
 
+      //var rows = g.select("g")
       var rows = g.selectAll(".row")
+                    // .selectAll("g.row")
                     .data(vdataset, function(d) { return d.name; });
 
+                    // .enter()
+                    // .append("g")
+                    // .attr("class", "row")
             //UPDATE
             //old element(rect)
             rows
+                    //.selectAll("rect") **WRONG**
                     .select("rect")
                     .transition()
                     .duration(500)
+                    //.attr("height", 9)
+                    //.attr("x", xScale(min))
+//                    .attr("fill",function(d){
+//                        return color(d.name);
+//                    })
                     .attr("width", function(d) {
                         if (vEncode == "pop")
                             return xScale(d.population);
@@ -345,15 +320,19 @@
             rows
                     .select("text")
                     .transition()
-                    .duration(500) 
+                    .duration(500) //put under transition()
+                    //.attr("x",-10)
                     .attr("y",function(d){
                         return yScale(d.name);
                     })
+                    //.attr("dy", ".35em")
                     .text(function(d) { return d.name; });
 
             //ENTER
             //new element(g)
             var rect = rows
+                    //.selectAll("rect") **WRONG**
+                    //.enter().append("rect") **WRONG**
                     .enter().append("g")
                     .attr("class","row")
                     .attr("ID", function(d) { return d.name });
@@ -361,6 +340,8 @@
             //new element(rect)
             rect
                     .append("rect")
+                    //.transition()
+                    //.duration(1000)
                     .attr("height", 9)
                     .attr("x", xScale(min))
                     .attr("fill",function(d){
@@ -393,6 +374,122 @@
                   .remove();
     };
 
+    //table drawing
+    function render(vdataset){
+      //var columns = Object.keys(dataset[0]); 
+      var columns = ["name","continent","gdp","life_expectancy","population","year"];
+
+      //remove old table
+      var selection = d3.selectAll("table").each(function(d){
+          if(d3.select(this).attr("id") == "mytable"){
+            d3.select(this).remove();
+          }
+      });
+
+      //draw table
+      var table = d3.select("body").append("table")
+                    .attr("id","mytable"),
+        thead = table.append("thead")
+                    .attr("class", "thead");
+        tbody = table.append("tbody")
+                    .attr("class", "col_name col_conti col_gdp col_life col_pop col_year");
+
+      table.append("caption")
+        .html("World Countries Ranking");
+
+      thead.append("tr").selectAll("th")
+        .data(columns)
+        .enter()
+        .append("th")
+        .text(function(d) { return d; })
+        .on("click", function(header, i) {
+          //when sorting status is descending
+          if (sorting == "desc"){
+            //when click "continent"
+            if(header == "continent"){
+                tbody.selectAll("tr").sort(function(a, b) {
+                   //return d3.ascending(a[header]+a["name"],b[header]+b["name"]);
+                    //first key is continent, second key is name
+                    return d3.ascending(a[header],b[header]) || d3.ascending(a["name"],b["name"]);
+                });
+            }
+            else{
+                tbody.selectAll("tr").sort(function(a, b) {
+                    return d3.ascending(a[header], b[header]);
+                });
+            }
+            //change status to ascending
+            sorting = "asc";
+            //add ▲ to clicked header
+            thead.selectAll("th").text(function(d){
+              if(d == header)
+                return d + "\u25B2";
+              else
+                return d;
+            })
+          }
+          else{
+            //when click "continent"
+            if(header == "continent"){
+                tbody.selectAll("tr").sort(function(a, b) {
+                    //first key is continent, second key is name
+                    return d3.descending(a[header],b[header]) || d3.ascending(a["name"],b["name"]);
+                });
+            }else{
+                tbody.selectAll("tr").sort(function(a, b) {
+                  return d3.descending(a[header], b[header]);
+                });
+            }
+            //add ▼ to clicked header
+            thead.selectAll("th").text(function(d){
+              if(d == header)
+                return d + "\u25BC";
+              else
+                return d;
+            })
+            //change status to descending
+            sorting ="desc";
+          }
+
+          //background-color-stripe
+          zebra();
+        });
+
+      var rows = tbody.selectAll("tr.row")
+        .data(vdataset)
+        .enter()
+        .append("tr").attr("class", "row")
+        .classed("selected", true);
+
+      var cells = rows.selectAll("td")
+        .data(function(row) {
+                return d3.range(columns.length).map(function(column, i) {
+                  //gdp
+                  if (column == 2){
+                    var rdata = row[columns[i]];
+                    var rscale = d3.formatPrefix(rdata).scale(rdata).toFixed(1);
+                    var rsymbol = d3.formatPrefix(rdata).symbol;
+                    return rscale + rsymbol;
+                  }
+                  //life_expectancy
+                  else if (column == 3)
+                    return row[columns[i]].toFixed(1);
+                  //population
+                  else if (column == 4){
+                    fcomma = d3.format(",");
+                    return fcomma(row[columns[i]].toFixed(0));
+                  }
+                  else
+                    return row[columns[i]];
+            });
+        })
+        .enter()
+        .append("td")
+        .text(function(d) { return d; });
+
+        //background-color-stripe
+        zebra();
+    };
 
     //control functions(called from every button)
     function distributeFunc(){
@@ -531,7 +628,7 @@
         selDataset = indexed_data[newVal];
         
         //check aggrigation, filter etc
-        //distributeFunc();
+        distributeFunc();
     };
 
     function sortchanged(vdataset,vsort){
@@ -551,6 +648,19 @@
         return vdataset;
     };
 
+    //back ground color
+    function zebra(){
+        tbody.selectAll(".selected").style("background-color",function(d, i){
+            if(i%2 == 0){
+                //even
+                return "#FFCCCC";
+            }
+            else{
+                //odd
+                return "white";
+            }
+        }); 
+    }
 
     </script> 
   </body>

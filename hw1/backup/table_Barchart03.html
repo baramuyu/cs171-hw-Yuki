@@ -8,8 +8,8 @@
     }
     table,th,td, caption {
         /*To add solid lines in the cells*/
-        border: solid 1px black;
-    }
+          border: solid 1px black;
+        }
     tr:hover td{
         background-color: LemonChiffon;
     }
@@ -20,22 +20,22 @@
         background-color: #99CCFF;
     }
     input[type='range'] {
-        -webkit-appearance: none;
-        box-shadow: inset 0 0 5px #333;
-        background-color: #999;
-        height: 5px;
-        width: 250px;
-        vertical-align: 4px;
+      -webkit-appearance: none;
+      box-shadow: inset 0 0 5px #333;
+      background-color: #999;
+      height: 5px;
+      width: 250px;
+      vertical-align: 4px;
     }
 
     input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none !important;
-        border-radius: 20px;
-        background-color: #FFF;
-        box-shadow:inset 0 0 10px rgba(000,000,000,0.5);
-        border: 1px solid #999;
-        height: 20px;
-        width: 20px;
+      -webkit-appearance: none !important;
+      border-radius: 20px;
+      background-color: #FFF;
+      box-shadow:inset 0 0 10px rgba(000,000,000,0.5);
+      border: 1px solid #999;
+      height: 20px;
+      width: 20px;
     }
     rect {
         fill-opacity:.8;
@@ -52,36 +52,48 @@
       <label id="yearmin" value="">----</label>
       <input type="range" name="points" min="1995" max="2012" step="1" value="0" id="slider-time" oninput="rangechanged(this.value)"> 
       <label id="yearmax" value="">----</label>
+      </br>Encode bars by:
+      <label>
+        <input type="radio" name="encode" value="pop" onchange="distributeFunc()" checked="checked">Population
+        <input type="radio" name="encode" value="gdp" onchange="distributeFunc()" >GDP
+      </label>
       </br>Filter by: 
       <label>
-        <input type="checkbox" name="Americas" value="Americas" title="Americas" onchange="switchFunc();">
+        <input type="checkbox" name="Americas" value="Americas" title="Americas" onchange="distributeFunc();">
         </input>Americas
       </label>
       <label>
-        <input type="checkbox" name="Africa" value="Africa" title="Africa" onchange="switchFunc()">
+        <input type="checkbox" name="Africa" value="Africa" title="Africa" onchange="distributeFunc()">
         </input>Africa
       </label>
       <label>
-        <input type="checkbox" name="Asia" value="Asia" title="Asia" onchange="switchFunc()">
+        <input type="checkbox" name="Asia" value="Asia" title="Asia" onchange="distributeFunc()">
         </input>Asia
       </label>
       <label>
-        <input type="checkbox" name="Europe" value="Asia" title="Europe" onchange="switchFunc()">
+        <input type="checkbox" name="Europe" value="Asia" title="Europe" onchange="distributeFunc()">
         </input>Europe
       </label>
       <label>
-        <input type="checkbox" name="Oceania" value="Oceania" title="Oceania" onchange="switchFunc()">Oceania
+        <input type="checkbox" name="Oceania" value="Oceania" title="Oceania" onchange="distributeFunc()">Oceania
         </input>
       </label>
       <br>
-      Aggregation:
-      <label><input type="radio" name="aggr" value="False" onchange="switchFunc()" checked="checked">None
-      <input type="radio" name="aggr" value="True" onchange="switchFunc()" >by Continent</label>
-    </P>
+      Aggregate by:
+      <label>
+        <input type="radio" name="aggr" value="True" onchange="distributeFunc()">Continent
+        <input type="radio" name="aggr" value="False" onchange="distributeFunc()" checked="checked">Country
+      </label>
+      </br>
+      Sort by:
+        <input type="radio" name="sort" value="name" onchange="distributeFunc()" checked="checked">Name
+        <input type="radio" name="sort" value="pop" onchange="distributeFunc()">Population
+        <input type="radio" name="sort" value="gdp" onchange="distributeFunc()">GDP
+      </P>
     <script src="d3.min.js"></script>
     <script>
 
-    var sorting = "desc"
+    var sorting = ""
     var dataset = []
     var dyear = []
     var selectedYear = ""
@@ -124,10 +136,80 @@
       var year_max = d3.max(dyear)
       labelmax.textContent = year_max;
 
-      //render(dataset,[]);
       rangechanged(year_min);
 
     });
+
+    //initialize barchart(Gloval)
+    var margin = {top: 15, bottom: 10, left:200, right: 40};
+    var width = 900 - margin.left - margin.right;
+    var height = 2200 - margin.top - margin.bottom;
+ 
+    var xScale = d3.scale.linear().range([0, width]);
+    var yScale = d3.scale.ordinal().rangeRoundBands([0, height], .8, 0);
+ 
+    var svg = d3.select("body").append("svg")
+                .attr("width", width+margin.left+margin.right)
+                .attr("height", height+margin.top+margin.bottom)
+
+    var g = svg.append("g")
+                .attr("transform", "translate("+margin.left+","+margin.top+")")
+    //randam color
+    var color = d3.scale.category20();
+
+
+    function barchart(vdataset, vEncode){
+
+      //SVG adjustment, height and yscale
+      svg.attr("height",  vdataset.length*18 + margin.top + margin.bottom);
+      yScale = d3.scale.ordinal().rangeRoundBands([0, vdataset.length*18], .8, 0);
+
+      //remove old table
+      d3.select("body").selectAll("g.row").remove();
+        if (vEncode == "pop")
+            var max = d3.max(vdataset, function(d) { return d.population; } );
+        else
+            var max = d3.max(vdataset, function(d) { return d.gdp; } );
+
+        var min = 0;
+
+        xScale.domain([min, max]);
+        yScale.domain(vdataset.map(function(d) { return d.name; }));
+
+        var rows = g.append("g")
+                    .selectAll("g.row")
+                    .data(vdataset)
+                    .enter()
+                    .append("g")
+                    .attr("class", "row")
+
+        var bars = rows
+                    .append("rect")
+                    .attr("width", function(d) {
+                        if (vEncode == "pop") 
+                            return xScale(d.population);
+                        else
+                            return xScale(d.gdp);
+                    })
+                    .attr("height", 9)
+                    .attr("x", xScale(min))
+                    .transition()
+                    .attr("y", function(d) { 
+                        return yScale(d.name); })
+                    .attr("fill",function(d){
+                        return color(d.name);
+                    });
+
+                  rows
+                    .append("text")
+                    .attr("x",-10)
+                    .transition()
+                    .attr("y",function(d){
+                        return yScale(d.name); })
+                    .attr("dy", ".35em")
+                    //.attr("text-anchor","end")
+                    .text(function(d) { return d.name; });
+     };
 
     function render(vdataset){
 
@@ -220,33 +302,65 @@
         //background-color-stripe
         zebra();
 
+        //create barchart
+        barchart(vdataset);
+
     };
 
-    function switchFunc(){
+    function distributeFunc(){
         //aggrigated data with year
         var rdataset = selDataset;
+        var encode = "";
+
+        //check Encode button
+        d3.selectAll("input").each(function(d) {
+            if(d3.select(this).attr("name") == "encode" && d3.select(this).node().checked) {
+                // Current name of the checkbox is d3.select(this).attr("name")
+                if (d3.select(this).attr("value") == "pop")
+                    encode = "pop"
+                else if (d3.select(this).attr("value") == "gdp")
+                    encode = "gdp"
+            }
+        })
 
         //check Filter button
         d3.selectAll("input").each(function(d) {  
             if(d3.select(this).attr("type") == "checkbox" && d3.select(this).node().checked) {
-                console.log("push filter");
                 rdataset = boxchanged(rdataset);
             }
         })
 
         //check aggrigation button
         d3.selectAll("input").each(function(d) {
-            if(d3.select(this).attr("type") == "radio" && d3.select(this).node().checked) {
-                // Current name of the checkbox is d3.select(this).attr("name")
+            if(d3.select(this).attr("name") == "aggr" && d3.select(this).node().checked) {
+                //aggrigate by continent
                 if (d3.select(this).attr("value") == "True"){
                     rdataset = radiochanged(rdataset);
                 }
             }
         })
 
+        //check sort button
+        d3.selectAll("input").each(function(d) {
+            var sort = ""
+            if(d3.select(this).attr("name") == "sort" && d3.select(this).node().checked) {
+                //aggrigate by continent
+                if (d3.select(this).attr("value") == "name"){
+                      sort = "name";
+                }else if(d3.select(this).attr("value") == "pop"){
+                      sort = "population";
+                }else if(d3.select(this).attr("value") == "gdp"){
+                      sort = "gdp";
+                }
+                rdataset = sortchanged(rdataset,sort);
+            }
+        });
+
+        //update table
         render(rdataset);
 
-        //background-color
+        barchart(rdataset, encode);   
+
         zebra();
 
     }
@@ -256,6 +370,7 @@
 
         selConti = [];
         //time update
+        //rangechanged(selectedYear);
 
         d3.selectAll("input").each(function(d) {  
           if(d3.select(this).attr("type") == "checkbox" && d3.select(this).node().checked) {
@@ -292,6 +407,7 @@
             }
           }) // Where aggregation happens
           .entries(vdataset);
+          //.map(dataset,d3.map)
 
           //making data flat
           flat_results = nested_rows.map(function(d){
@@ -321,9 +437,27 @@
         selDataset = indexed_data[newVal];
         
         //render
-        switchFunc();
+        distributeFunc();
     }
 
+    function sortchanged(vdataset,vsort){
+        if (vsort == "name"){
+            vdataset.sort(function(a, b) {
+                return d3.ascending(a[vsort], b[vsort]);
+            });
+        }else if(vsort == "population"){
+            vdataset.sort(function(a, b) {
+                return d3.descending(a[vsort], b[vsort]);
+            });
+        }else if(vsort == "gdp"){
+            vdataset.sort(function(a, b) {
+                return d3.descending(a[vsort], b[vsort]);
+            });
+        }
+        return vdataset;
+    }
+
+    //back ground color
     function zebra(){
         tbody.selectAll(".selected").style("background-color",function(d, i){
             if(i%2 == 0){

@@ -8,34 +8,11 @@
     }
     table,th,td, caption {
         /*To add solid lines in the cells*/
-          border: solid 1px black;
-        }
+        border: solid 1px black;
+    }
     tr:hover td{
         background-color: LemonChiffon;
     }
-/*    .col_gdp td:nth-child(3) {
-        text-align: right
-    }
-    .col-life td:nth-child(4) {
-        text-align: right
-    }
-    .col-population td:nth-child(5) {
-        text-align: right
-    }*/
-    /*does't work*/
-/*    tr:nth-child(odd) {
-        background: #FFCCCC;
-    }
-    tr:nth-child(even) {
-        background: white;
-    }*/
-    /*does't work*/
-/*    .selected:nth-child(odd) {
-        background: #FFCCCC;
-    }
-    .selected:nth-child(even) {
-        background: white;
-    }*/
     th{
         background-color: #CCFFFF;
     }
@@ -43,32 +20,77 @@
         background-color: #99CCFF;
     }
     input[type='range'] {
-      -webkit-appearance: none;
-      box-shadow: inset 0 0 5px #333;
-      background-color: #999;
-      height: 5px;
-      width: 250px;
-      vertical-align: 4px;
+        -webkit-appearance: none;
+        box-shadow: inset 0 0 5px #333;
+        background-color: #999;
+        height: 5px;
+        width: 250px;
+        vertical-align: 4px;
     }
 
     input[type='range']::-webkit-slider-thumb {
-      -webkit-appearance: none !important;
-      border-radius: 20px;
-      background-color: #FFF;
-      box-shadow:inset 0 0 10px rgba(000,000,000,0.5);
-      border: 1px solid #999;
-      height: 20px;
-      width: 20px;
+        -webkit-appearance: none !important;
+        border-radius: 20px;
+        background-color: #FFF;
+        box-shadow:inset 0 0 10px rgba(000,000,000,0.5);
+        border: 1px solid #999;
+        height: 20px;
+        width: 20px;
+    }
+    rect {
+        fill-opacity:.8;
+    }
+    text{
+        text-anchor: end;
+    }
+    .col_gdp td:nth-child(3) {
+        text-align: right
+    }
+    .col-life td:nth-child(4) {
+        text-align: right
+    }
+    .col-population td:nth-child(5) {
+        text-align: right
     }
 
   </style>
 </head>
   <body>
-    <!--<script src="http://d3js.org/d3.v3.min.js"></script> -->
+    <P>
+      Time update: 
+      <label id="yearmin" value="">----</label>
+      <input type="range" name="points" min="1995" max="2012" step="1" value="0" id="slider-time" oninput="rangechanged(this.value)"> 
+      <label id="yearmax" value="">----</label>
+      </br>Filter by: 
+      <label>
+        <input type="checkbox" name="Americas" value="Americas" title="Americas" onchange="switchFunc();">
+        </input>Americas
+      </label>
+      <label>
+        <input type="checkbox" name="Africa" value="Africa" title="Africa" onchange="switchFunc()">
+        </input>Africa
+      </label>
+      <label>
+        <input type="checkbox" name="Asia" value="Asia" title="Asia" onchange="switchFunc()">
+        </input>Asia
+      </label>
+      <label>
+        <input type="checkbox" name="Europe" value="Asia" title="Europe" onchange="switchFunc()">
+        </input>Europe
+      </label>
+      <label>
+        <input type="checkbox" name="Oceania" value="Oceania" title="Oceania" onchange="switchFunc()">Oceania
+        </input>
+      </label>
+      <br>
+      Aggregation:
+      <label><input type="radio" name="aggr" value="False" onchange="switchFunc()" checked="checked">None
+      <input type="radio" name="aggr" value="True" onchange="switchFunc()" >by Continent</label>
+    </P>
     <script src="d3.min.js"></script>
     <script>
 
-    var sorting = ""
+    var sorting = "desc"
     var dataset = []
     var dyear = []
     var selectedYear = ""
@@ -76,7 +98,9 @@
     var aggr_on = "";
     var selConti = [];
 
+    //DATA LOAD
     d3.json("data/countries_1995_2012.json", function(error, data){
+
       //render
       data.map(function(d,i){
             for (i = 0; i < d.years.length; i++) {
@@ -95,7 +119,7 @@
                 dyear.push(d.years[i].year);
 
             }
-                return;         
+            return;         
       });
 
       //Time update
@@ -111,14 +135,15 @@
 
       //render(dataset,[]);
       rangechanged(year_min);
+
     });
 
-    function render(vdataset,filt_conti){
+    function render(vdataset){
 
       //var columns = Object.keys(dataset[0]); 
       var columns = ["name","continent","gdp","life_expectancy","population","year"];
 
-      //init remove table
+      //remove old table
       d3.select("body").selectAll("table").remove();
 
       //draw table
@@ -126,8 +151,8 @@
                     .attr("id","mytable"),
         thead = table.append("thead")
                   .attr("class", "thead");
-        tbody = table.append("tbody");
-                  // .attr("class", "col_gdp col-life col-population");
+        tbody = table.append("tbody")
+                  .attr("class", "col_gdp col-life col-population");
 
       table.append("caption")
         .html("World Countries Ranking");
@@ -163,6 +188,7 @@
                 });
             }
           }
+
           //background-color-stripe
           zebra();
         });
@@ -172,16 +198,6 @@
         .data(vdataset)
         .enter()
         .append("tr").attr("class", "row")
-        .filter(function (d){
-            if (filt_conti.length == 0)
-              return d.continent;
-            else
-              return (d.continent == filt_conti[0]
-                || d.continent == filt_conti[1] 
-                || d.continent == filt_conti[2] 
-                || d.continent == filt_conti[3] 
-                || d.continent == filt_conti[4])
-        })
         .classed("selected", true);
 
       //yoko
@@ -213,13 +229,43 @@
 
         //background-color-stripe
         zebra();
+
     };
 
+    function switchFunc(){
+        //aggrigated data with year
+        var rdataset = selDataset;
+
+        //check Filter button
+        d3.selectAll("input").each(function(d) {  
+            if(d3.select(this).attr("type") == "checkbox" && d3.select(this).node().checked) {
+                console.log("push filter");
+                rdataset = boxchanged(rdataset);
+            }
+        })
+
+        //check aggrigation button
+        d3.selectAll("input").each(function(d) {
+            if(d3.select(this).attr("type") == "radio" && d3.select(this).node().checked) {
+                // Current name of the checkbox is d3.select(this).attr("name")
+                if (d3.select(this).attr("value") == "True"){
+                    rdataset = radiochanged(rdataset);
+                }
+            }
+        })
+
+        render(rdataset);
+
+        //background-color
+        zebra();
+
+    }
+
     //Filter-when checkbox is checked
-    function boxchanged(){
+    function boxchanged(vdataset){
+
         selConti = [];
         //time update
-        rangechanged(selectedYear);
 
         d3.selectAll("input").each(function(d) {  
           if(d3.select(this).attr("type") == "checkbox" && d3.select(this).node().checked) {
@@ -227,26 +273,24 @@
               selConti.push(d3.select(this).attr("name"));
           }
         })
-        if (aggr_on)
-          radiochanged();
-        else
-          render(selDataset,selConti);
 
-        zebra();
+        var filDataset = selDataset.filter(function(d){
+            if (selConti.length == 0)
+              return d.continent;
+            else
+              return (d.continent == selConti[0]
+                || d.continent == selConti[1] 
+                || d.continent == selConti[2] 
+                || d.continent == selConti[3] 
+                || d.continent == selConti[4])          
+        })
+
+        return filDataset;
     }
 
     //when aggrigation on
-    function radiochanged(){
-      aggr_on = false;
-      d3.selectAll("input").each(function(d) {
-          if(d3.select(this).attr("type") == "radio" && d3.select(this).node().checked) {
-              // Current name of the checkbox is d3.select(this).attr("name")
-              if (d3.select(this).attr("value") == "True")
-                aggr_on = true;
-          }
-      })
-      
-      if (aggr_on){
+    function radiochanged(vdataset){
+
         var nested_rows = d3.nest()
           .key(function(d) { return d.continent; })
           .key(function(d){ return d.year; })
@@ -257,19 +301,14 @@
               "population": d3.mean(leaves, function(d){return d.population;})
             }
           }) // Where aggregation happens
-          .entries(selDataset);
-          //.map(dataset,d3.map)
+          .entries(vdataset);
 
-          //render
+          //making data flat
           flat_results = nested_rows.map(function(d){
             return {name:d.key,continent:d.key,year:d.values[0].key,gdp:d.values[0].values.gdp,life_expectancy:d.values[0].values.life_expectancy,population:d.values[0].values.population};
           })
-          render(flat_results,selConti);
 
-      }else{
-          //No Aggregation
-          rangechanged(selectedYear);
-      };
+          return flat_results;
     }
 
     //Range
@@ -290,11 +329,9 @@
 
         //preserve in Global
         selDataset = indexed_data[newVal];
+        
         //render
-        if(aggr_on == true)
-          radiochanged();
-        else
-          render(selDataset,selConti);
+        switchFunc();
     }
 
     function zebra(){
@@ -309,36 +346,5 @@
     }
 
     </script> 
-    <P>Time update: 
-      <label id="yearmin" value="">----</label>
-      <input type="range" name="points" min="1995" max="2012" step="1" value="0" id="slider-time" oninput="rangechanged(this.value)"> 
-      <label id="yearmax" value="">----</label>
-      </br>Filter by: 
-      <label>
-        <input type="checkbox" name="Americas" value="Americas" title="Americas" onchange="boxchanged()">
-        </input>Americas
-      </label>
-      <label>
-        <input type="checkbox" name="Africa" value="Africa" title="Africa" onchange="boxchanged()">
-        </input>Africa
-      </label>
-      <label>
-        <input type="checkbox" name="Asia" value="Asia" title="Asia" onchange="boxchanged()">
-        </input>Asia
-      </label>
-      <label>
-        <input type="checkbox" name="Europe" value="Asia" title="Europe" onchange="boxchanged()">
-        </input>Europe
-      </label>
-      <label>
-        <input type="checkbox" name="Oceania" value="Oceania" title="Oceania" onchange="boxchanged()">Oceania
-        </input>
-      </label>
-      <br>
-      Aggregation:
-      <label><input type="radio" name="aggr" value="False" onchange="radiochanged()" checked="checked">None
-      <input type="radio" name="aggr" value="True" onchange="radiochanged()" >by Continent</label>
-
-    </P>
   </body>
 </html>
