@@ -136,7 +136,8 @@ function circular_layout() {
   var pie = d3.layout.pie()
           .sort(function(a, b) { return a.cat - b.cat;}) // Sorting by categories
           .value(function(d, i) { 
-            return 1;  // We want an equal pie share/slice for each point
+            //return 1;
+            return d.cat;  // We want an equal pie share/slice for each point
           });
 
   graph.nodes = pie(graph.nodes).map(function(d, i) {
