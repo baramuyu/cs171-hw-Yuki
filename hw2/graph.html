@@ -223,19 +223,19 @@
           //console.log(e.alpha)
           graph.nodes.forEach(function(o, i) {
               switch(o.cont){
-                  case 1: //"Americas":
+                  case "Americas":
                       o.x -= k*2;
                       break;
-                   case 2: //"Africa":
+                   case "Africa":
                       o.x -= k;
                       break;
-                  case 3:// "Asia":
+                  case "Asia":
                       //o.x +- 0
                       break;
-                  case 4: //"Europe":
+                  case "Europe":
                       o.x += k;
                       break;
-                  case 5: //"Oceania":
+                  case "Oceania":
                       o.x += k*2;
                       break;             
               }
