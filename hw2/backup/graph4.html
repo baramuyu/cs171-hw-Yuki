@@ -36,15 +36,15 @@
       <td></td>
       <td style="text-align: right;">&#9658;</td>
       <td>Rankings:</td>
-      <td><label><input type="radio" name="ranking" value="norank" checked> None</label>
+      <td><label><input type="radio" name="ranking" value="norank" checked> none</label>
       </td>
-      <td><label><input type="radio" name="ranking" value="rank" > Rankings</label>
+      <td><label><input type="radio" name="ranking" value="rank" >Rankings</label>
         &nbsp;&nbsp;&nbsp;
       </td>
       <td>Key:<select id="selectKeys" onchange="keyChanged(this);">
-      <option value="gdp" selected="selected"> GDP</option>
-      <option value="population" > Population</option>
-      <option value="life_expectancy" > Life_expectancy</option>
+      <option value="gdp" selected="selected">GDP</option>
+      <option value="population" >Population</option>
+      <option value="life_expectancy" >Life_expectancy</option>
       </select>
       </td>
     </tr>
@@ -54,7 +54,7 @@
       <td>Scatterplot:</td>
       <td><label><input type="radio" name="ranking" value="growth"> Population/GDP</label>
       </td>
-      <td><label><input type="radio" name="ranking" value="location" > Longitude/Latitude</label>
+      <td><label><input type="radio" name="ranking" value="location" >longitude/latitude</label>
       </td>
     </tr>
     <tr>
@@ -68,16 +68,7 @@
       <td>Sortkey:</td>
       <td><label><input type="radio" name="circle" value="cir_gdp" checked> GDP</label>
       </td>
-      <td><label><input type="radio" name="circle" value="cir_pop" > Population</label>
-    </tr>
-    <tr>
-      <td></td>
-      <td style="text-align: right;">&#9658;</td>
-      <td>Grouped:</td>
-      <td><label><input type="radio" name="circle2" value="cir_none" checked> None </label>
-      </td>
-      <td><label><input type="radio" name="circle2" value="cir_grouped"> By Continent </label>
-      </td>
+      <td><label><input type="radio" name="circle" value="cir_pop" >Population</label>
     </tr>
     <tr>
       <td></td>
@@ -88,11 +79,11 @@
       <td></td>
       <td style="text-align: right;">&#9658;</td>
       <td>Shape:</td>
-      <td><label><input type="radio" name="group" value="gr_none" checked> None </label>
+      <td><label><input type="radio" name="group" value="gr_none" checked> none </label>
       </td>
-      <td><label><input type="radio" name="group" value="gr_horizontal" checked> Horizontal </label>
+      <td><label><input type="radio" name="group" value="gr_horizontal" checked> horizontal </label>
       </td>
-      <td><label><input type="radio" name="group" value="gr_pie" > Pie </label>
+      <td><label><input type="radio" name="group" value="gr_pie" > circular </label>
     </tr>
  </table>
     <script src="d3.min.js"></script>
@@ -112,8 +103,6 @@
 //circular
   d3.select("input[value=\"cir_gdp\"]").on("click", circular_layout);
   d3.select("input[value=\"cir_pop\"]").on("click", circular_layout);
-  d3.select("input[value=\"cir_none\"]").on("click", circular_layout);
-  d3.select("input[value=\"cir_grouped\"]").on("click", circular_layout);
 
 //grouped
   d3.select("input[value=\"gr_horizontal\"]").on("click", grouped_layout);
@@ -234,19 +223,19 @@
           //console.log(e.alpha)
           graph.nodes.forEach(function(o, i) {
               switch(o.cont){
-                  case continents[0]: //Americas
+                  case "Americas":
                       o.x -= k*2;
                       break;
-                   case continents[1]: //Africa
+                   case "Africa":
                       o.x -= k;
                       break;
-                  case continents[2]: //Asia
+                  case "Asia":
                       //o.x +- 0
                       break;
-                  case continents[3]: //Europe
+                  case "Europe":
                       o.x += k;
                       break;
-                  case continents[4]: //Oceania
+                  case "Oceania":
                       o.x += k*2;
                       break;             
               }
@@ -440,19 +429,17 @@
       force.stop();
 
       //get sortkey
-      var sortkey_circle
-      var grouped_circle
+      var sortkey_circle    
       d3.selectAll("input").each(function(d) {
           if(d3.select(this).attr("name") == "circle" && d3.select(this).node().checked) {
               sortkey_circle = d3.select(this).attr("value");
-          }else if(d3.select(this).attr("name") == "circle2" && d3.select(this).node().checked) {
-              grouped_circle = d3.select(this).attr("value");
           }
-
       });
 
+      var r = Math.min(height, width)/2;
+
       var arc = d3.svg.arc()
-              
+              .outerRadius(r);
       var pie = d3.layout.pie()
       switch(sortkey_circle){
           case "cir_gdp":
@@ -466,45 +453,17 @@
           return 1;  // We want an equal pie share/slice for each point
       });
 
-      switch(grouped_circle){
-          case "cir_none":
-              var r = Math.min(height, width)/2;
-              arc.outerRadius(r);
+      graph.nodes = pie(graph.nodes).map(function(d, i) {
+        // Needed to caclulate the centroid
+        d.innerRadius = 0;
+        d.outerRadius = r;
 
-              pie(graph.nodes).map(function(d, i) {
-                // Needed to caclulate the centroid
-                d.innerRadius = 0;
-                d.outerRadius = r;
+        // Building the data object we are going to return
+        d.data.x = arc.centroid(d)[0]+width/2;
+        d.data.y = arc.centroid(d)[1]+height/2;
 
-                // Building the data object we are going to return
-                d.data.x = arc.centroid(d)[0]+width/2;
-                d.data.y = arc.centroid(d)[1]+height/2;
-
-                return d.data;
-              })
-              break;
-          case "cir_grouped":
-              var r = 200;
-              arc.outerRadius(r);
-
-              get_centroid();
-
-              continents.forEach(function(o,j){
-                    pie(graph.nodes.filter(function(d){return d.cont == o })).map(function(d, i) {
-                     // Needed to caclulate the centroid
-                    d.innerRadius = 0;
-                    d.outerRadius = r;        
-
-                    // Building the data object we are going to return
-                    d.data.x = arc.centroid(d)[0] + (centroid_xy[j].x *3) + width/2;
-                    d.data.y = arc.centroid(d)[1] + (centroid_xy[j].y *3) + height/2;
-
-                    return d.data;
-                  })
-              });
-              //graph.nodes = tmpnodes;
-              break;
-      }
+        return d.data;
+      })
 
       graph_update(500);
   }
@@ -520,7 +479,51 @@
     });
 
     if(group_shape == "gr_pie"){
-        get_centroid();
+
+      //PIE----------------
+        var piedata = [22, 27, 35, 33, 3];
+        //var piedata = create_piedata();
+
+        var outerRadius = 250;
+        var innerRadius = 0;
+        var arc = d3.svg.arc()
+                .innerRadius(innerRadius)
+                .outerRadius(outerRadius);
+        
+        var pie = d3.layout.pie();
+        //Set up groups
+        var arcs = svg.selectAll("g.arc")
+                .data(pie(piedata))
+                .enter()
+                .append("g")
+                .attr("class", "arc")
+                .attr("transform", "translate(" + (outerRadius+250) + "," + outerRadius + ")");
+        
+        //Draw arc paths
+        arcs.append("path")
+            .attr("fill", "transparent")
+            .attr("stroke","black")
+            .attr("d", arc);
+        
+        //Labels
+        arcs.append("text")
+            .attr("transform", function(d,i) {
+              centroid_xy.push({x:arc.centroid(d)[0],y:arc.centroid(d)[1]})
+              //console.log(centroid_xy)
+              return "translate(" + arc.centroid(d) + ")";
+            })
+            .attr("text-anchor", "middle")
+            .text(function(d) {
+              return d.value;
+            });
+
+        xyScale
+              .domain([-125,125])
+              .range([-2,2]);
+        console.log(centroid_xy)
+
+      //pie end-------------------------
+
     }
 
 
@@ -539,52 +542,6 @@
         })
      
         return piedata;
-    }
-
-    function get_centroid(){
-        //var piedata = [22, 27, 35, 33, 3];
-        var piedata = create_piedata();
-
-        var outerRadius = 250;
-        var innerRadius = 0;
-        var arc = d3.svg.arc()
-                .innerRadius(innerRadius)
-                .outerRadius(outerRadius);
-        
-        var pie = d3.layout.pie();
-        //Set up groups
-        var arcs = svg.selectAll("g.arc")
-                .data(pie(piedata))
-                .enter()
-                .append("g")
-                .attr("class", "arc")
-                .attr("transform", "translate(" + (outerRadius+250) + "," + outerRadius + ")");
-        
-        //Draw arc paths
-        //invisible pie chart
-        arcs.append("path")
-            .attr("fill", "transparent")
-            .attr("stroke","black")
-            .attr("d", arc)
-            .attr("visibility","hidden"); 
-        
-        //Labels
-        //invisible pie chart
-        arcs.append("text")
-            .attr("transform", function(d,i) {
-              centroid_xy.push({x:arc.centroid(d)[0],y:arc.centroid(d)[1]})
-              //console.log(centroid_xy)
-              return "translate(" + arc.centroid(d) + ")";
-            })
-            .attr("text-anchor", "middle")
-            .text(function(d) {
-              return d.value;
-            })
-            .attr("visibility","hidden");
-
-        xyScale
-              .domain([-125,125])
-              .range([-2,2]);
     }
 
 
