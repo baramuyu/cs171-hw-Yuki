@@ -54,7 +54,6 @@ var xyScale = d3.scale.linear();
 var node_scale = d3.scale.linear();
 
 var tmp_links = [];
-var circular_layout_checked = false;
 
 //SETTING GRAPH.NODES
 graph.nodes = d3.range(119).map(function() {  
@@ -72,7 +71,7 @@ graph.nodes.forEach(function(d, i) {
 
 // Generate the force layout
 var force = d3.layout.force()
-    .size([1200, 1000])
+    .size([width, height])
     .charge(-50) //between nodes, so they will repel each other more
     //.linkDistance(10) //the length of the edges between connected nodes
     .gravity(0.07) //dedault 0.1
@@ -80,12 +79,6 @@ var force = d3.layout.force()
     .on("tick", tick)
     .on("start", function(d) {}) //animation
     .on("end", function(d) {}) //animation
-
-var diameter = 740,
-    radius = diameter / 2,
-    innerRadius = radius - 120;
-
-var bundle = d3.layout.bundle();
 
 var link = svg.selectAll(".link")
 
@@ -95,6 +88,16 @@ var node = svg.selectAll(".node")
     .append("g").attr("class", "node")
     .on("mouseover", mouseovered)
     .on("mouseout", mouseouted);
+
+    // .on("mouseover", function (d) {
+    //     graph.links.forEach(function(l){
+    //         if (d === l.source || d === l.target)
+    //           link = svg.select(".link")
+    //             .attr("stroke-width", 4);
+    //         else
+    //           link.attr("stroke-width", 1);              
+    //     })
+    // })
 
 node.append("circle")
     .attr("r", 5);
@@ -143,6 +146,11 @@ d3.json("data/countries_1995_2012.json", function(error, data){
     sortingdata(selDataset,"gdp");
 		graph_update_norank();
 
+    var link = svg.selectAll(".link")
+            .data(graph.links);
+
+    link.enter().insert("line") //not "apend" but "insert". for drow nodes over links.
+        .attr("class", "link")
 }); //End json loading
 
 function tick(e) {
@@ -236,19 +244,13 @@ function graph_update(duration) {
       .select("text")
       .text(function(d){ return d.cat})
 
-  //bundle doen't work...
-  var line = d3.svg.line.radial()
-      .interpolate("bundle")
-      .tension(.85)
-      .radius(function(d) { return d.y; })
-      .angle(function(d) { return d.x / 180 * Math.PI; });
-
+  // var link = svg.selectAll(".link")
+  //         .data(graph.links);
   link = svg.selectAll(".link")
       .data(graph.links);
 
-  link.enter().insert("line", "g.node") 
+  link.enter().insert("svg:line", "g.node") 
       .attr("class", "link")
-      .attr("d", line); //for bundle
 
   var link = svg.selectAll(".link")
   link.transition().duration(duration)
@@ -256,6 +258,8 @@ function graph_update(duration) {
     .attr("y1", function(d) { return d.target.y; })
     .attr("x2", function(d) { return d.source.x; })
     .attr("y2", function(d) { return d.source.y; });
+
+
 }
 
 function graph_update_norank() { //(1)
@@ -356,13 +360,7 @@ function keyChanged(selVal){
 
 function force_layout(){
 
-    //change canvas size
-    var width = 1500 - margin.left - margin.right;
-    var height = 1500 - margin.top - margin.bottom;
-
-    circular_layout_checked = false; //mouse hover off
-
-    var link = svg.selectAll(".link") //link off
+    var link = svg.selectAll(".link")
             .attr("visibility","hidden"); 
 
     var selGraph = "";
@@ -395,10 +393,6 @@ function force_layout(){
 }
 
 function circular_layout(){
-
-    //change canvas size
-    width = 1200 - margin.left - margin.right;
-    height = 1200 - margin.top - margin.bottom;
 
     var link = svg.selectAll(".link")
             .attr("visibility","visible"); 
@@ -435,7 +429,6 @@ function circular_layout(){
         }
         if(d3.select(this).attr("value") == "circular"){
             d3.select(this).property('checked', true);
-            circular_layout_checked = true;
         }
     });
 
@@ -456,7 +449,7 @@ function circular_layout(){
 
     switch(grouped_circle){
         case "cir_none":
-            var r = Math.min(height, width)/1.3;
+            var r = Math.min(height, width)/2;
             arc.outerRadius(r);
 
             pie(graph.nodes).map(function(d, i) {
@@ -499,11 +492,10 @@ function circular_layout(){
 
 function grouped_layout(){
 
-  circular_layout_checked = false; //mouse hover off
-
-  var link = svg.selectAll(".link") //link off
+  var link = svg.selectAll(".link")
             .attr("visibility","hidden"); 
 
+  //force.stop();
   //get sortkey 
   d3.selectAll("input").each(function(d) {
       if(d3.select(this).attr("name") == "group" && d3.select(this).node().checked) {
@@ -552,7 +544,7 @@ function get_centroid(){
             .enter()
             .append("g")
             .attr("class", "arc")
-            .attr("transform", "translate(" + outerRadius + "," + outerRadius + ")");
+            .attr("transform", "translate(" + (outerRadius+250) + "," + outerRadius + ")");
     
     //Draw arc paths
     //invisible pie chart
@@ -605,9 +597,6 @@ function rangechanged(newVal){
 };
 
 function mouseovered(d) {
-  if (circular_layout_checked == false){
-    return;
-  }
   node //make all nodes.target/source false
       .each(function(n) { 
         n.colored = false; });
