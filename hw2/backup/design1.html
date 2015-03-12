@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<head>
+    <style  <style type="text/css">
+	.node {
+		fill: white;
+		stroke: #000;
+		stroke-width: .9px;
+	}
+	.node:hover {
+		fill: black;
+	}
+	.text{
+	fill: black;
+	stroke-width: 0px;
+	font-size: .9em;
+	}
+    input[type='range'] {
+        -webkit-appearance: none;
+        box-shadow: inset 0 0 5px #333;
+        background-color: #999;
+        height: 5px;
+        width: 250px;
+        vertical-align: 4px;
+    }
+    input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none !important;
+        border-radius: 20px;
+        background-color: #FFF;
+        box-shadow:inset 0 0 10px rgba(000,000,000,0.5);
+        border: 1px solid #999;
+        height: 20px;
+        width: 20px;
+    } 
+	.axis path,
+	.axis line {
+	    fill: none;
+	    stroke: black;
+	    shape-rendering: crispEdges;
+	}
+	.axis text {
+	    font-family: sans-serif;
+	    font-size: 11px;
+	}  
+  
+    </style>
+</head>
+<body align="center">
+	<h1>World Trade Cargo & Logistics Planning</h1>
+  	Country Key&#9658;<select id="selectKeys" >	</select>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	Year Slider&#9658;
+  	<label id="yearmin" value="">1995</label>
+	<input type="range" name="points" min="1995" max="2012" step="1" value="2012" id="slider-time" oninput="slider_changed(this.value)">
+	<label id="yearmax" value="">2012</label>
+	</br>
+	<h2 id="subtitle">Angola's top partners in 2012</h2>
+	</br>
+    <script src="d3.min.js"></script>
+    <script>
+
+var selDataset = []; //filtered data by year
+var dataset = [];
+var targetData = []; //top partners of country key
+var gselYear = []; //selected year
+var gselCountryid = []; //country ID of selected Key
+var gselCountryName = []; //country name of selected Key
+
+var margin = {top: 10, bottom: 10, left: 10, right: 10};
+var width = 1200 - margin.left - margin.right;
+var height = 800 - margin.top - margin.bottom;
+
+var fill = d3.scale.category10(); //color
+
+var xScale = d3.scale.linear();
+var yScale = d3.scale.linear();
+
+var xAxis = d3.svg.axis()
+var yAxis = d3.svg.axis()
+
+var graph = {nodes: [], links: []};
+
+var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+
+// Generate the force layout
+var force = d3.layout.force()
+    .size([width, height])
+    .on("tick", tick)
+    .on("start", function(d) {}) //animation
+    .on("end", function(d) {}) //animation
+
+//SETTING GRAPH.NODES
+graph.nodes = d3.range(10).map(function() {return { cat: 1 }; })
+
+var node = svg.selectAll(".node")
+    .data(graph.nodes)
+    .enter()
+    .append("g").attr("class", "node")
+
+var circle = node.append("circle")
+    .attr("r", 5); 
+
+var text = node.append("text")
+		.attr("x", 10)
+		.attr("y", 4)
+		.attr("class","text")
+		.text("test");
+
+// text label for the x axis
+svg.append("text")      
+        .attr("x", width/2 )
+        .attr("y", height-50 )
+        .style("text-anchor", "middle")
+        .text("GDP/Population(GDP per Capita)");
+// text label for the y axis
+svg.append("text")
+		.attr("transform", "rotate(-90)")      
+        .attr("x", 0 - (height / 2))
+        .attr("y", 0 + 30 )
+        .style("text-anchor", "middle")
+        .text("Total_export");
+
+//DATA LOAD
+d3.json("data/countries_1995_2012.json", function(error, data){
+
+		//mapping
+		data.map(function(d,i){
+		    for (i = 0; i < d.years.length; i++) {
+            //Target and Source
+            var tmp_links = [];
+            for (j = 0; j < d.years[i].top_partners.length; j++) {
+                tmp_links.push({
+                	"source": d.country_id, 
+                	"target": d.years[i].top_partners[j].country_id,
+                	"total_export": d.years[i].top_partners[j].total_export
+                });
+            }
+	        var dat = {
+	          name: d.name,
+	          continent: d.continent,
+	          gdp: d.years[i].gdp,
+	          life_expectancy: d.years[i].life_expectancy,
+	          population: d.years[i].population,
+	          year: d.years[i].year,
+              latitude: d.latitude,
+              longitude: d.longitude,
+              country_id: d.country_id,
+              top_partners: tmp_links
+	        };
+            dataset.push(dat);
+		    }
+
+		});
+
+	    force.nodes(graph.nodes)
+	      .start();
+
+		slider_changed("2012"); //1
+
+		setting_dropdown(); //2
+	
+		gselCountryid = selDataset[0].country_id //for filter by default country
+	    controlfunc(); //3
+
+}); //End json loading
+
+function controlfunc(){
+
+	create_targetData()
+
+	setting_axis();
+
+	graph_update_growth();
+
+	change_subtitle();
+}
+
+function setting_axis(){
+	xScale //gdp / population
+      .domain([0,d3.max(targetData.map(function(d) { return d.gdp/d.population; }))])
+      .range([80, width-100]);
+    yScale
+      .domain([0,d3.max(targetData.map(function(d) { return d.total_export; }))])
+      .range([height-100, 50]);
+
+    //Define X axis
+    xAxis
+      .scale(xScale)
+      .orient("bottom")
+      .ticks(10)
+      .tickFormat(d3.format("s"));
+    
+    //Define Y axis
+    yAxis
+      .scale(yScale)
+      .orient("left")
+      .ticks(10)
+      .tickFormat(d3.format("s"));
+
+	svg.selectAll(".axis").remove();
+
+    //Create X axis
+	svg.append("g")
+		.attr("class", "axis")
+		.attr("transform", "translate(0," + (height - 90) + ")")
+	    .call(xAxis);
+	
+	//Create Y axis
+	svg.append("g")
+	    .attr("class", "axis")
+	    .attr("transform", "translate(" + 80 + ",0)")
+	    .call(yAxis); 
+}
+
+function graph_update_growth() { //(3)
+
+  force.stop();
+
+  graph.nodes.forEach(function(d, i) {
+    d.x = xScale(targetData[i].gdp / targetData[i].population);
+    d.y = yScale(targetData[i].total_export);
+    d.cat = targetData[i].name;
+  })
+
+  graph_update(500);
+}
+
+function graph_update(duration) {
+
+	node = svg.selectAll(".node")
+		.data(graph.nodes)
+	    //.data(graph.nodes, function(d){return d.country_id})
+	    //.enter()
+	    //.append("g").attr("class", "node")
+	node.transition().duration(100)
+	    .attr("transform", function(d) {return "translate("+d.x+","+d.y+")"; })
+        .attr("id", function(d) { return d.cat });
+
+	var circle = node.select("circle")
+	    .attr("r", 5); 
+
+	var text = node.select("text")
+			.attr("x", 10)
+			.attr("y", 4)
+			.attr("class","text")
+			.text(function(d){ return d.cat});
+
+}
+
+function keyChanged(){
+
+	gselCountryid = d3.event.target.value
+	create_targetData(); //pass selected country_id
+	
+	controlfunc();
+}
+
+function create_targetData(){
+	//initialize
+	//targetData = [];	
+	var seltargets = [];
+	var total_export =[];
+
+	//selected country --Source
+	selDataset.forEach(function(d){
+		if(d.country_id == gselCountryid){
+			d.top_partners.forEach(function(e){ 
+				seltargets.push(e.target);
+				total_export.push({target: e.target, value: e.total_export})
+			})
+			gselCountryName = d.name //save to global
+		}
+	})
+	//console.log(seltargets)
+	//
+	targetData = selDataset.filter(function(d){
+		return seltargets.indexOf(d.country_id) > -1;
+	})
+	targetData.forEach(function(d){
+		total_export.forEach(function(e){
+			if(d.country_id == e.target)
+				d.total_export = e.value;
+		})
+	})
+	// targetData = targetData.sort(function(a, b) {
+ //        return d3.ascending(a["name"], b["name"]);
+ //    });
+};
+
+//Range
+function slider_changed(newVal){
+
+    var indexed_data = []
+    var tmpdata = []
+
+    //preserve in Global
+    gselYear = newVal;
+
+    dataset.map(function(d,i){
+        if (d.year == newVal){
+            tmpdata.push(d);  
+        }
+        indexed_data[newVal] = tmpdata
+    });
+
+    //preserve in Global
+    selDataset = indexed_data[newVal];
+
+    if(targetData.length != 0)
+    	controlfunc();
+};
+
+function change_subtitle(){
+	var subtitle = d3.select("body").select("h2")
+
+	subtitle
+		.text(gselCountryName +"'s top partners in "+ gselYear)
+		//.text("Angola's top partners in 2012");
+}
+
+function setting_dropdown(){
+	var dropDown = d3.select("#selectKeys")
+			.on("change", keyChanged);
+
+	var options = dropDown.selectAll("option")
+        	.data(selDataset)
+        	.enter()
+        	.append("option");
+
+    options
+    	.text(function (d) { return d.name; })
+       	.attr("value", function (d) { return d.country_id; });
+};
+
+function tick(e) {
+};
+
+    </script> 
+  </body>
+</html>

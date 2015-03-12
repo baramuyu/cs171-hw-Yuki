@@ -340,12 +340,28 @@ function create_quadrants(){
 		.text("High Export / Lower Margin")
 		//.attr("fill","#FF9933");
 
+	// quadrant1_tex
+	// 	.append("rect")
+	// 	.attr("x",-3).attr("y",-20)
+	// 	.attr("rx", 10).attr("ry",10)
+	// 	.attr("width",230).attr("height",30)
+	// 	.attr("class","rect")
+		//.attr("stroke","orange");
+
 	quadrant2_tex
 		.attr("transform", function(d) {return "translate("+800+","+100+")"; })
 		.append("text")
 		.attr("class","quad_text")
 		.text("High Export / Hign Margin")
 		//.attr("fill","blue");
+
+	// quadrant2_tex
+	// 	.append("rect")
+	// 	.attr("x",-3).attr("y",-20)
+	// 	.attr("rx", 10).attr("ry",10)
+	// 	.attr("width",230).attr("height",30)
+	// 	.attr("class","rect")
+		//.attr("stroke","blue");
 
 	quadrant3_tex
 		.attr("transform", function(d) {return "translate("+100+","+650+")"; })
@@ -354,6 +370,14 @@ function create_quadrants(){
 		.text("Lower Export / Lower Margin")
 		//.attr("fill","red");
 
+	// quadrant3_tex
+	// 	.append("rect")
+	// 	.attr("x",-3).attr("y",-20)
+	// 	.attr("rx", 10).attr("ry",10)
+	// 	.attr("width",230).attr("height",30)
+	// 	.attr("class","rect")
+		//.attr("stroke","red");
+
 	quadrant4_tex
 		.attr("transform", function(d) {return "translate("+800+","+650+")"; })
 		.append("text")
@@ -361,6 +385,13 @@ function create_quadrants(){
 		.text("Lower Export / Hign Margin")
 		//.attr("fill","pink");
 
+	// quadrant4_tex
+	// 	.append("rect")
+	// 	.attr("x",-3).attr("y",-20)
+	// 	.attr("rx", 10).attr("ry",10)
+	// 	.attr("width",230).attr("height",30)
+	// 	.attr("class","rect")
+	// 	//.attr("stroke","pink");
 }
 
 function graph_update_growth() { //(3)

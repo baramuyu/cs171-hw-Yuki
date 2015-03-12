@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Homework 2 Graph</title>
+<style>
+  .link {
+    stroke: gray;
+    stroke-width: .8px;
+  }
+
+  .node {
+    fill: white;
+    stroke: #000;
+    stroke-width: .9px;
+  }
+
+  .node:hover {
+    fill: black;
+  }
+
+  .text{
+    fill: black;
+    stroke-width: 0px;
+    font-size: .9em;
+  }
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+  <form>
+    Layout Selection:
+    <select id="layout" onchange="keyChanged(this)";>
+      <option value="force" selected="selected"> Force </option>
+      <option value="circular"> Circular </option>
+      <option value="grouped"> Grouped </option>
+    </select>
+  </form>
+
+  <form>
+    Rankings:
+    <label><input type="radio" name="ranking" value="norank" checked> None </label>
+    <label><input type="radio" name="ranking" value="rank"> Rankings </label>
+    Sorted by:
+    <select id="selectKeys" onchange="keyChanged(this)";>n </option>
+      <option value="gdp"> GDP </option>
+      <option value="population" selected="selected"> Population </option>
+      <option value="life_expectancy"> Life Expectancy </option>
+    </select>
+  </form>
+
+  <form>
+    Scatterplot:
+    <label><input type="radio" name="ranking" value="growth" checked> Population/GDP </label>
+    <label><input type="radio" name="ranking" value="location"> Longitude/Latitude </label>
+  </form>
+
+  <form>
+    Circular:
+    <label><input type="radio" name="circular" value="cir_gdp" checked> GDP </label>
+    <label><input type="radio" name="circular" value="cir_pop"> Population </label>
+  </form>
+
+  <form>
+    Shape:
+    <label><input type="radio" name="grouped" value="grouped_none" checked> None </label>
+    <label><input type="radio" name="grouped" value="grouped_horizontal"> Horizontal </label>
+    <label><input type="radio" name="grouped" value="grouped_pie"> Pie </label>
+  </form>
+
+  <script>
+    //layout selection
+    d3.select("input[value=\"force\"]").on("click", force_layout);
+    d3.select("input[value=\"circular\"]").on("click", circular_layout);
+    d3.select("input[value=\"grouped\"]").on("click", grouped_layout);  
+
+    //force selection
+    d3.select("input[value=\"norank\"]").on("click", force_layout);
+    d3.select("input[value=\"rank\"]").on("click", force_layout);
+
+    d3.select("input[value=\"growth\"]").on("click", force_layout);
+    d3.select("input[value=\"location\"]").on("click", force_layout);
+
+    //circular selection
+    d3.select("input[value=\"cir_gdp\"]").on("click", circular_layout);
+    d3.select("input[value=\"cir_pop\"]").on("click", circular_layout);
+
+    //grouped selection
+    d3.select("input[value=\"grouped_pie\"]").on("click", grouped_layout);
+    d3.select("input[value=\"grouped_horizontal\"]").on("click", grouped_layout);
+    d3.select("input[value=\"grouped_none\"]").on("click", grouped_layout);
+
+
+
+    var margin = {top: 50, bottom: 10, left: 300, right: 40};
+    var width = 900 - margin.left - margin.right;
+    var height = 900 - margin.top - margin.bottom;
+
+    var svg = d3.select("body").append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+    var fill = d3.scale.category10();
+
+    var graph = {nodes: [], links: []};
+
+    var nb_nodes = 120, nb_cat = 10;
+
+    var node_scale = d3.scale.linear().domain([0, nb_cat]).range([5, 50])
+
+    graph.nodes = d3.range(nb_nodes).map(function() {  
+      return { 
+        cat: Math.floor(nb_cat*Math.random())
+      }; 
+    })
+
+    graph.nodes.forEach(function(d, i) {
+      graph.nodes.forEach(function(e, j) {
+        if(Math.random()>.99 && i!=j)
+          graph.links.push({"source": i, "target": j})
+
+      })
+    })
+
+    // Generate the force layout
+    var force = d3.layout.force()
+        .size([width, height])
+        .charge(-50)
+        .linkDistance(10)
+        .on("tick", tick)
+        .on("start", function(d) {})
+        .on("end", function(d) {})
+
+
+//--------------------------------------------------------------------------------------------------
+
+
+
+    function tick(d) {
+      graph_update(0);
+    }
+
+    graph.nodes = d3.range(nb_nodes).map(function() {  
+      return { 
+        cat: 1 //???
+      }; 
+    })
+
+    var node = svg.selectAll(".node")
+      .data(graph.nodes)
+      .enter()
+      .append("g").attr("class", "node")
+
+    var dataset = [];
+
+    d3.json("data/countries_1995_2012.json", function(error, data){
+      //mapping //flattening
+      data.map(function(d,i){
+            for (i = 0; i < d.years.length; i++) {
+                var dat = {
+                  name: d.name,
+                  continent: d.continent,
+                  gdp: d.years[i].gdp,
+                  life_expectancy: d.years[i].life_expectancy,
+                  population: d.years[i].population,
+                  year: d.years[i].year
+                };
+
+                dataset.push(dat);
+            }
+      })
+      dataset = rangechanged(dataset,1995);
+
+      dataset.sort(function(a, b) {
+        return d3.descending(a["population"], b["population"]);
+      });
+
+      node.append("circle")
+        .attr("r", 5)
+
+      node.append("text")
+        .text(function(d, i) { return dataset[i].name })
+        .attr("class", "text")
+        .attr("x", 7)
+        .attr("y", 5);
+
+      force.nodes(graph.nodes)  //Force
+        .start();
+
+      force.stop();        //Line
+      graph.nodes.forEach(function(d, i) {  
+        d.y = ((height + 800) / nb_nodes * i) + 10
+        d.cat = dataset[i].name;
+        //d.y = (i+1)*18//height;
+        //d.y = (height / nb_nodes * i) + 50
+        //d.y = popScale(dataset[i].population*-1);
+        d.x = width/2;
+      })
+      graph_update(500);
+    });
+
+    function graph_update(duration) {
+
+      node.transition().duration(duration)
+        .attr("transform", function(d) { 
+          return "translate("+d.x+","+d.y+")"; 
+        })
+        .selectAll("text")
+        .text(function(d){return d.cat});
+    }
+
+
+
+
+  </script>
+</body>
+</html>
