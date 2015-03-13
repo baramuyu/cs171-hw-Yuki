@@ -281,6 +281,25 @@ function setting_axis(){
 	    .attr("class", "axis")
 	    .attr("transform", "translate(" + 70 + ",0)")
 	    .call(yAxis); 
+
+	// text label for the x axis
+	svg.append("text")      
+	        .attr("x", width/2 )
+	        .attr("y", height-20 )
+	        .style("text-anchor", "middle")
+	        .attr("class","text")
+	        .attr("font-size","15px")
+	        .text("GDP/Population(GDP per Capita)");
+
+	// text label for the y axis
+	svg.append("text")
+			.attr("transform", "rotate(-90)")      
+	        .attr("x", 0 - (height / 2))
+	        .attr("y", 0 + 20 )
+	        .style("text-anchor", "middle")
+	        .attr("class","text")
+	        .attr("font-size","15px")
+	        .text("Export Amount");
 }
 
 //Use Rect instead of Path
@@ -346,71 +365,15 @@ function create_quadrants(){
 
 function graph_update_growth() { //(3)
 
-	console.log("************************")
-	console.log("---graph.nodes(old)---------")
-	graph.nodes.forEach(function(d){console.log(d.cat)})
+  force.stop();
 
-	force.stop();
+  graph.nodes.forEach(function(d, i) {
+    d.x = xScale(targetData[i].gdp / targetData[i].population);
+    d.y = yScale(targetData[i].total_export);
+    d.cat = targetData[i].name;
+  })
 
-	//initialize flag for old/new element
-	graph.nodes.forEach(function(d){
-			d.upd = false;
-	})
-
-	var flag = false;
-	var new_target = targetData.slice(0);
-	var cup = [];
-
-	targetData.forEach(function(e,j){ //Attention! Don't update d.cat. because it's Key.
-		graph.nodes.forEach(function(d, i) {
-			if(targetData[j].name == d.cat){
-			    d.x = xScale(targetData[j].gdp / targetData[j].population);
-			    d.y = yScale(targetData[j].total_export);
-			    d.upd = true;
-			    
-			    //removing
-			    new_target.forEach(function(f,k){
-			    	if(targetData[j].name == f.name)
-			    		new_target.splice(k, 1)
-			    })
-	    	}
-		})		
-	})
-
-	console.log("---removedata---------");
-	for (var i = 9; i >= 0; i--) {
-		if(!graph.nodes[i].upd){
-			console.log(graph.nodes[i].cat)
-			graph.nodes.splice(i,1)
-		}
-	};
-	graph.nodes.forEach(function(d, i) {
-		if(!d.upd){
-			graph.nodes.splice(i,1)
-			console.log(d.cat)
-		}
-	})
-
-
-	new_target.forEach(function(d){
-		graph.nodes.push({
-				cat: d.name,
-			    x: xScale(d.gdp / d.population),
-			    y: yScale(d.total_export),
-			    upd: true
-		})
-	})
-
-	//log
-	console.log("---new_target----------")
-	new_target.forEach(function(d){console.log(d.name)})
-	console.log("---graph.nodes(new)-------")
-	graph.nodes.forEach(function(d){console.log(d.cat)})
-	console.log("---targetData---------")
-	targetData.forEach(function(d){console.log(d.name)})
-
-
-	graph_update(500);
+  graph_update(500);
 }
 
 function create_graph(){
@@ -421,13 +384,11 @@ function create_graph(){
 	})
 
 	var node = svg.selectAll(".node")
-	    .data(graph.nodes,function(d){ 
-	    	return d.cat;
-	    })
+	    .data(graph.nodes,function(d){return d.cat})
 	    .enter()
 	    .append("g").attr("class", "node")
 	    .attr("id", function(d) { return d.cat })
-	    .attr("transform", function(d) {return "translate("+d.x+","+d.y+")"; })
+	    .attr("transform", function(d) {return "translate("+d.x+","+d.y+")"; });
 
 	var circle = node.append("circle")
 	    .attr("r", 30); 
@@ -439,71 +400,15 @@ function create_graph(){
 			.attr("class","text")
 			.attr("opacity",1)
 			.text(function(d){ return d.cat});
-
-	// text label for the x axis
-	svg.append("text")      
-	        .attr("x", width/2 )
-	        .attr("y", height-20 )
-	        .style("text-anchor", "middle")
-	        .attr("class","text")
-	        .attr("font-size","15px")
-	        .text("GDP/Population(GDP per Capita)");
-
-	// text label for the y axis
-	svg.append("text")
-			.attr("transform", "rotate(-90)")      
-	        .attr("x", 0 - (height / 2))
-	        .attr("y", 0 + 20 )
-	        .style("text-anchor", "middle")
-	        .attr("class","text")
-	        .attr("font-size","15px")
-	        .text("Export Amount");
 }
 
 function graph_update(duration) {
 
 	var node = svg.selectAll(".node")
-		.data(graph.nodes,function(d){return d.cat});
-	//console.log(node[0].forEach(function(d){return d}))
-
-	//update old elements
-	node.transition().duration(500)
+	node.transition().duration(0)
 	    .attr("transform", function(d) {return "translate("+d.x+","+d.y+")"; })
-	    .attr("status","update")
-	    .style("fill-opacity", 1)
-
-	//enter
-	var new_node = node
-		.enter().append("g")
-		.attr("class", "node")
-	    .attr("transform", function(d) {return "translate("+d.x+","+850+")"; })
-	    .attr("status","enter")
-	    .attr("id",function(d){ return d.cat;})
-	    .style("fill-opacity", 0)
-	
-	new_node.append("circle")
-	    .attr("r", 30)
-
-	new_node.append("text")
-		.attr("x", 0)
-		.attr("y", 4)
-		.attr("text-anchor","middle")
-		.attr("class","text")
-		.text(function(d){ return d.cat});
-
-	new_node.transition()
-	      .duration(500)
-	      .style("fill-opacity", 1)
-	      .attr("transform", function(d) {return "translate("+d.x+","+d.y+")"; })
-
-  // EXIT
-  // Remove old elements as needed.
-  node.exit()
-     .transition()
-      .duration(500)
-      .style("fill-opacity", 0)
-	  .attr("transform", function(d) {return "translate("+d.x+","+850+")"; })
-      .remove();
+		.select(".text")
+	    .text(function(d){ return d.cat});
 }
 
 function keyChanged(){
@@ -541,7 +446,7 @@ function slider_changed(newVal){
     //selDataset = indexed_data[newVal];
     targetData = indexed_targetData[gselYear]
 
-    if(!init)
+    if(targetData.length != 0)
     	controlfunc();
 };
 
@@ -569,7 +474,6 @@ function setting_dropdown(){
 
 function tick(e) {
 };
-
 
     </script> 
   </body>
