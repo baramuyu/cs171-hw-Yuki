@@ -8,6 +8,7 @@
     <script src="libs/d3/d3.min.js" charset="utf-8"></script>
     <script src="libs/jquery/jquery-2.1.1.min.js" charset="utf-8"></script>
     <script src="libs/bootstrap/js/bootstrap.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/queue.v1.min.js"></script>
 
     <script src="http://hs8.de/cs171_tests/tester.js"></script>
 
@@ -65,9 +66,13 @@
             // you might make use of the map and filter functions
             // HINT: javascript Date objects are comparable !!
             // see: http://www.w3schools.com/js/js_date_methods.asp
+            var fildata = allData.filter(function(d){
+                return d.time >= from && d.time <= to; 
+            })
 
-
-
+            fildata.forEach(function(d){
+                count += d.count
+            })
 
 
 
@@ -82,7 +87,7 @@
 
 
 
-        function allLoaded(perDay,meta){
+        function allLoaded(error,perDay,meta){
 
             metaData = meta;
 
@@ -110,11 +115,11 @@
 
         // TODO: TASK 2 A -- implement your data loading here and then call "allLoaded(perDayData, metaData)"
 
-
-
-
-
-
+        queue()
+            .defer(d3.json, 'data/perDayData.json') // perdaydata
+            .defer(d3.json, 'data/MYWorld_fields.json') // metadata
+            
+            .await(allLoaded) // function that uses files
 
     })
 
