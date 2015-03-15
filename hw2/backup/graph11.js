@@ -29,7 +29,7 @@ var selKey = "gdp"; //rank key default
 var group_shape = "none"
 var continents = ["Americas","Africa","Asia","Europe","Oceania"];
 
-  //initialize barchart(Global)
+  //initialize barchart(Gloval)
 var margin = {top: 5, bottom: 5, left: 10, right: 10};
 var width = 1500 - margin.left - margin.right;
 var height = 1500 - margin.top - margin.bottom;
@@ -73,9 +73,9 @@ graph.nodes.forEach(function(d, i) {
 // Generate the force layout
 var force = d3.layout.force()
     .size([1200, 1000])
-    .charge(-50) //between nodes, they will repel each other
+    .charge(-50) //between nodes, so they will repel each other more
     //.linkDistance(10) //the length of the edges between connected nodes
-    .gravity(0.07) //default 0.1
+    .gravity(0.07) //dedault 0.1
     .friction(0.9) //default 0.9
     .on("tick", tick)
     .on("start", function(d) {}) //animation
@@ -111,7 +111,7 @@ d3.json("data/countries_1995_2012.json", function(error, data){
 		//mapping
 		data.map(function(d,i){
 		    for (i = 0; i < d.years.length; i++) {
-            //target and source
+            //Target and Source
             tmp_links = [];
             for (j = 0; j < d.years[i].top_partners.length; j++) {
                 tmp_links.push({"source": d.country_id, "target": d.years[i].top_partners[j].country_id});
@@ -236,7 +236,7 @@ function graph_update(duration) {
       .select("text")
       .text(function(d){ return d.cat})
 
-  //bundles don't work?
+  //bundle doen't work...
   var line = d3.svg.line.radial()
       .interpolate("bundle")
       .tension(.85)
@@ -345,7 +345,7 @@ function graph_update_location() { //(4)
 
 function keyChanged(selVal){
     
-    selKey = selVal.value //save to global
+    selKey = selVal.value //save to gloval
 
     var selGraph = "";
     
@@ -451,7 +451,7 @@ function circular_layout(){
             break;
     }
     pie.value(function(d, i) { 
-        return 1;  // equal pie share/slice for each point
+        return 1;  // We want an equal pie share/slice for each point
     });
 
     switch(grouped_circle){
@@ -600,7 +600,7 @@ function rangechanged(newVal){
     //preserve in Global
     selDataset = indexed_data[newVal];
     
-    //check aggregation, filter etc
+    //check aggrigation, filter etc
     //distributeFunc();
 };
 

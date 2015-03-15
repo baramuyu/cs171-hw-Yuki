@@ -3,6 +3,11 @@
 <meta charset="utf-8">
 <head>
 	<style>
+	path { 
+ 	  stroke: gray;
+  	  stroke-opacity: .4;
+      fill: none;
+	}
 
 	.link {
 	  stroke: steelblue;
@@ -111,12 +116,12 @@
 			<td>Shape:</td>
 			<td><label><input type="radio" name="group" value="gr_none" checked> None </label>
 			</td>
-			<td><label><input type="radio" name="group" value="gr_horizontal" > Horizontal </label>
+			<td><label><input type="radio" name="group" value="gr_horizontal"> Horizontal </label>
 			</td>
 			<td><label><input type="radio" name="group" value="gr_pie" > Pie </label>
 		</tr>
  </table>
-	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="d3.min.js"></script>
 	<script src="graph.js"></script>
 	</body>
 </html>

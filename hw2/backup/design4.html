@@ -4,21 +4,20 @@
 <head>
     <style  <style type="text/css">
 	.node {
-		/*fill: white;*/
+		fill: white;
 		opacity: .8;
-		stroke: white ;
-		stroke-width: 6px;
+		stroke: SteelBlue ;
+		stroke-width: .9px;
 	}
 	.node:hover {
-		stroke: gray ;
-		opacity: 1;
+		fill: #66CCFF;
+		opacity: .5;
 	}
 	.text{
 		fill: black;
 		stroke-width: 0px;
 		font-size: 1.1em;
 		font-family: sans-serif;
-		opacity: 1;
 	}
     input[type='range'] {
         -webkit-appearance: none;
@@ -72,8 +71,9 @@
 	<input type="range" name="points" min="1995" max="2012" step="1" value="2012" id="slider-time" oninput="slider_changed(this.value)">
 	<label id="yearmax" value="">2012</label>
 	</br>
-	<h2 id="subtitle">Albania's top partners in 2012</h2>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
+	<h2 id="subtitle">Angola's top partners in 2012</h2>
+	</br>
+    <script src="d3.min.js"></script>
     <script>
 
 var selDataset = []; //filtered data by year
@@ -92,7 +92,7 @@ var margin = {top: 10, bottom: 10, left: 10, right: 10};
 var width = 1200 - margin.left - margin.right;
 var height = 800 - margin.top - margin.bottom;
 
-var color = d3.scale.category10(); //color
+var fill = d3.scale.category10(); //color
 
 var xScale = d3.scale.linear();
 var yScale = d3.scale.linear();
@@ -112,14 +112,10 @@ var quadrant1 = svg.insert("path"); //Light Blue
 var quadrant2 = svg.insert("path"); //Blue
 var quadrant3 = svg.insert("path"); //Light Green
 var quadrant4 = svg.insert("path"); //Green
-
-var quadrant1_text = svg.insert("g");
-var quadrant2_text = svg.insert("g");
-var quadrant3_text = svg.insert("g");
-var quadrant4_text = svg.insert("g");
-
-var quadrant_color = {q1:"#A4A4A4", q2: "#6E6E6E", q3:"#BDBDBD", q4:"#A4A4A4"}
-
+var quadrant1_tex = svg.insert("g");
+var quadrant2_tex = svg.insert("g");
+var quadrant3_tex = svg.insert("g");
+var quadrant4_tex = svg.insert("g");
 
 // Generate the force layout
 var force = d3.layout.force()
@@ -168,9 +164,7 @@ d3.json("data/countries_1995_2012.json", function(error, data){
 
 	    create_databyyear();
 
-		//gselCountryid = indexed_data[2012][0].country_id //for filter by default country
-		var tmp = indexed_data[2012].sort(function(a, b){ return d3.ascending(a["name"],b["name"])});
-		gselCountryid = tmp[0].country_id
+		gselCountryid = indexed_data[2012][0].country_id //for filter by default country
 
 	    find_maxmin();
 
@@ -255,10 +249,10 @@ function setting_axis(){
 
 	xScale //gdp / population
       .domain([0,gcapita_max])
-      .range([95, width-130]);
+      .range([95, width-100]);
     yScale
       .domain([0,gtexport_max])
-      .range([height-100, 50]);
+      .range([height-100, 70]);
 
     //Define X axis
     xAxis
@@ -287,69 +281,73 @@ function setting_axis(){
 	    .attr("class", "axis")
 	    .attr("transform", "translate(" + 70 + ",0)")
 	    .call(yAxis); 
-
 }
 
 //Use Rect instead of Path
 function create_quadrants(){
-	quadrant1 //top left
+	quadrant1
 		.attr("id", quadrant1)
-		.attr("d","M 70 360 H 585 V 20 H 73 V 360")
-		.attr("stroke",quadrant_color.q1)
+		.attr("d","M 70 340 H 585 V 20 H 73 V 340")
+		.attr("stroke","rgb(166,206,227)")
 		.attr("stroke-width",5)
-		.attr("fill",quadrant_color.q1)
-
-	quadrant2 //top right
+		.attr("fill","rgb(166,206,227)")
+		//.attr("opacity", ".9")
+	quadrant2
 		.attr("id", quadrant2)
-		.attr("d","M 1080 360 H 590 V 20 H 1077 V 360")
-		.attr("stroke",quadrant_color.q2)
+		.attr("d","M 1080 340 H 590 V 20 H 1077 V 340")
+		.attr("stroke","rgb(31,120,180)")
 		.attr("stroke-width",5)
-		.attr("fill",quadrant_color.q2)
-
-	quadrant3 //bottom left
+		.attr("fill","rgb(31,120,180)")
+		//.attr("opacity", ".9")
+	quadrant3
 		.attr("id", quadrant3)
-		.attr("d","M 70 365 H 585 V 707 H 73 V 365")
-		.attr("stroke",quadrant_color.q3)
+		.attr("d","M 70 345 H 585 V 707 H 73 V 343")
+		.attr("stroke","rgb(178,223,138)")
 		.attr("stroke-width",5)
-		.attr("fill",quadrant_color.q3)
-
-	quadrant4 //bottom right
+		.attr("fill","rgb(178,223,138)")
+		//.attr("opacity", ".9")
+	quadrant4
 		.attr("id", quadrant4)
-		.attr("d","M 1080 365 H 590 V 707 H1077 V365")
-		.attr("stroke",quadrant_color.q4)
+		.attr("d","M 1080 345 H 590 V 710 H1077 V343")
+		.attr("stroke","rgb(51,160,44)")
 		.attr("stroke-width",5)
-		.attr("fill",quadrant_color.q4)
+		.attr("fill","rgb(51,160,44)")
+		//.attr("opacity", ".9");
 
-	quadrant1_text
-		.attr("transform", function(d) {return "translate("+320+","+320+")"; })
+	quadrant1_tex
+		.attr("transform", function(d) {return "translate("+100+","+100+")"; })
 		.append("text")
 		.attr("class","quad_text")
-		.text("High Export / Low Margin")
+		.text("High Export / Lower Margin")
+		//.attr("fill","#FF9933");
 
-	quadrant2_text
-		.attr("transform", function(d) {return "translate("+630+","+320+")"; })
+	quadrant2_tex
+		.attr("transform", function(d) {return "translate("+800+","+100+")"; })
 		.append("text")
 		.attr("class","quad_text")
 		.text("High Export / Hign Margin")
+		//.attr("fill","blue");
 
-	quadrant3_text
-		.attr("transform", function(d) {return "translate("+320+","+420+")"; })
+	quadrant3_tex
+		.attr("transform", function(d) {return "translate("+100+","+650+")"; })
 		.append("text")
 		.attr("class","quad_text")
-		.text("Low Export / Low Margin")
+		.text("Lower Export / Lower Margin")
+		//.attr("fill","red");
 
-	quadrant4_text
-		.attr("transform", function(d) {return "translate("+630+","+420+")"; })
+	quadrant4_tex
+		.attr("transform", function(d) {return "translate("+800+","+650+")"; })
 		.append("text")
 		.attr("class","quad_text")
-		.text("Low Export / Hign Margin")
+		.text("Lower Export / Hign Margin")
+		//.attr("fill","pink");
 
 }
 
 function graph_update_growth() { //(3)
 
-	//console.log("************************")
-	//console.log("---graph.nodes(old)---------")
+	console.log("************************")
+	console.log("---graph.nodes(old)---------")
 	graph.nodes.forEach(function(d){console.log(d.cat)})
 
 	force.stop();
@@ -368,10 +366,9 @@ function graph_update_growth() { //(3)
 			if(targetData[j].name == d.cat){
 			    d.x = xScale(targetData[j].gdp / targetData[j].population);
 			    d.y = yScale(targetData[j].total_export);
-			    d.cont = targetData[j].continent;
 			    d.upd = true;
 			    
-			    //removing updated top partners for later
+			    //removing
 			    new_target.forEach(function(f,k){
 			    	if(targetData[j].name == f.name)
 			    		new_target.splice(k, 1)
@@ -380,38 +377,37 @@ function graph_update_growth() { //(3)
 		})		
 	})
 
-	//console.log("---removedata---------");
+	console.log("---removedata---------");
 	for (var i = 9; i >= 0; i--) {
 		if(!graph.nodes[i].upd){
-			//console.log(graph.nodes[i].cat)
+			console.log(graph.nodes[i].cat)
 			graph.nodes.splice(i,1)
 		}
 	};
 	graph.nodes.forEach(function(d, i) {
 		if(!d.upd){
 			graph.nodes.splice(i,1)
-			//console.log(d.cat)
+			console.log(d.cat)
 		}
 	})
 
-	//add new top partners
+
 	new_target.forEach(function(d){
 		graph.nodes.push({
 				cat: d.name,
 			    x: xScale(d.gdp / d.population),
 			    y: yScale(d.total_export),
-				cont: d.continent,
 			    upd: true
 		})
 	})
 
 	//log
-	// console.log("---new_target----------")
-	// new_target.forEach(function(d){console.log(d.name)})
-	// console.log("---graph.nodes(new)-------")
-	// graph.nodes.forEach(function(d){console.log(d.cat)})
-	// console.log("---targetData---------")
-	// targetData.forEach(function(d){console.log(d.name)})
+	console.log("---new_target----------")
+	new_target.forEach(function(d){console.log(d.name)})
+	console.log("---graph.nodes(new)-------")
+	graph.nodes.forEach(function(d){console.log(d.cat)})
+	console.log("---targetData---------")
+	targetData.forEach(function(d){console.log(d.name)})
 
 
 	graph_update(500);
@@ -421,25 +417,25 @@ function create_graph(){
 	graph.nodes.forEach(function(d, i) {
 		d.x = xScale(targetData[i].gdp / targetData[i].population);
 		d.y = yScale(targetData[i].total_export);
-		d.cont = targetData[i].continent;
 		d.cat = targetData[i].name;
 	})
 
 	var node = svg.selectAll(".node")
-	    .data(graph.nodes,function(d){return d.cat})
+	    .data(graph.nodes,function(d){ 
+	    	return d.cat;
+	    })
 	    .enter()
 	    .append("g").attr("class", "node")
 	    .attr("id", function(d) { return d.cat })
-	    .attr("transform", function(d) {return "translate("+d.x+","+d.y+")"; });
+	    .attr("transform", function(d) {return "translate("+d.x+","+d.y+")"; })
 
 	var circle = node.append("circle")
-	    .attr("r", 20)
-	    .attr("fill",function(d){return color(d.cont)}); 
+	    .attr("r", 30); 
 
 	var text = node.append("text")
 			.attr("x", 0)
 			.attr("y", 4)
-			.attr("text-anchor","start")
+			.attr("text-anchor","middle")
 			.attr("class","text")
 			.attr("opacity",1)
 			.text(function(d){ return d.cat});
@@ -471,7 +467,7 @@ function graph_update(duration) {
 	//console.log(node[0].forEach(function(d){return d}))
 
 	//update old elements
-	node.transition().duration(duration)
+	node.transition().duration(500)
 	    .attr("transform", function(d) {return "translate("+d.x+","+d.y+")"; })
 	    .attr("status","update")
 	    .style("fill-opacity", 1)
@@ -486,18 +482,17 @@ function graph_update(duration) {
 	    .style("fill-opacity", 0)
 	
 	new_node.append("circle")
-	    .attr("r", 20)
-	    .attr("fill",function(d){return color(d.cont)}); 
+	    .attr("r", 30)
 
 	new_node.append("text")
 		.attr("x", 0)
 		.attr("y", 4)
-		.attr("text-anchor","start")
+		.attr("text-anchor","middle")
 		.attr("class","text")
 		.text(function(d){ return d.cat});
 
 	new_node.transition()
-	      .duration(duration)
+	      .duration(500)
 	      .style("fill-opacity", 1)
 	      .attr("transform", function(d) {return "translate("+d.x+","+d.y+")"; })
 
@@ -505,12 +500,11 @@ function graph_update(duration) {
   // Remove old elements as needed.
   node.exit()
      .transition()
-      .duration(duration)
+      .duration(500)
       .style("fill-opacity", 0)
 	  .attr("transform", function(d) {return "translate("+d.x+","+850+")"; })
       .remove();
 }
-
 
 function keyChanged(){
 
@@ -543,6 +537,8 @@ function slider_changed(newVal){
     //preserve in Global
     gselYear = newVal;
 
+    //preserve in Global
+    //selDataset = indexed_data[newVal];
     targetData = indexed_targetData[gselYear]
 
     if(!init)
@@ -573,6 +569,7 @@ function setting_dropdown(){
 
 function tick(e) {
 };
+
 
     </script> 
   </body>
