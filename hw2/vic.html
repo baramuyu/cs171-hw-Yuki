@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+  <head>
+    <style type="text/css">
+      svg {
+         shape-rendering: crispEdges;
+        }
+       #stackedbudget-chart line {
+         stroke: #000;
+       }
+       .rule line {
+         stroke: #eee;
+       }
+       #histogram-trellis-chart rect {
+          fill: blue;
+          stroke: white;
+       }
+       #histogram-trellis-chart line {
+          stroke: black;
+       }
+
+       #treemap-transition .cell {
+         border: solid 1px white;
+         font: 16px;
+         color:white;
+         line-height: 12px;
+         overflow: hidden;
+         position: absolute;
+         text-indent: 2px;
+         text-align: center;
+         vertical-align: middle;
+      }
+
+       table { 
+         border-collapse: collapse;
+         border: 2px solid #FFFAFA; 
+       }
+       td {
+         padding: 10px;
+       }
+       .bubble_label {
+         opacity: 0;
+       }  
+       .bubble_label:hover {
+          opacity: 1;
+       }
+       .line {
+         opacity: 0.25;
+       }  
+       .line:hover {
+          opacity: 1;
+       }
+    </style>
+</head>
+<body>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <form>
+    <g id= "selections">
+      <strong>Max GDP Per Capita update:</strong>
+      <label id = "min_gdp_per_cap"></label><input type="range" name="gdp_per_cap_max_range" min="1000" max="80000" step="1000" value="80000" id="gdp_per_cap_max_range" oninput="change_curr_selection(this);"><label id = "max_gdp_per_cap"></label>
+    </g>
+  </form>
+    <script type="text/javascript">
+      // Based on http://www.verisi.com/resources/d3-tutorial-basic-charts.htm
+
+      var dataset = [];
+      function bubble_plot(){
+        // d3.selectAll("vis").remove();
+        // d3.selectAll("rule").remove();
+        d3.select("div").remove();
+        d3.select("body").append("div").attr("id", "scatter-bubble-chart");
+
+        d3.json("data/countries_1995_2012.json", function(error, data) {
+          //mapping //flattening
+          data.map(function(d,i){
+                for (i = 0; i < d.years.length; i++) {
+                    var dat = {
+                      name: d.name,
+                      continent: d.continent,
+                      gdp: d.years[i].gdp,
+                      life_expectancy: d.years[i].life_expectancy,
+                      population: d.years[i].population,
+                      year: d.years[i].year,
+                      gdp_per_cap: d.years[i].gdp / d.years[i].population
+                    };
+                    dataset.push(dat);               
+                }
+          })
+
+          // console.log(dataset)
+
+          var maxvalx = 0, minvalx = 80000,
+              maxvaly = 0, minvaly = 80000,
+              sampsize = 0;
+          var label_array = new Array(),
+              val_array = new Array();
+
+          var max_year = d3.max(dataset.map(function(d) { return d.year; })),
+              min_year = d3.min(dataset.map(function(d) { return d.year; }));
+
+          sampsize = dataset.length;
+
+          for (var i=0; i < sampsize; i++) {
+             label_array[i] = dataset[i].name + " in " + dataset[i].year;
+             val_array[i] = { label: label_array[i], x: parseFloat(dataset[i].gdp_per_cap), y: parseFloat(dataset[i].life_expectancy), size: (max_year - min_year) / (max_year - dataset[i].year), continent: dataset[i].continent  };
+             maxvalx = Math.max(maxvalx, parseFloat(dataset[i].gdp_per_cap) );
+             maxvaly = Math.max(maxvaly, parseFloat(dataset[i].life_expectancy) );
+             minvalx = Math.min(minvalx, parseFloat(dataset[i].gdp_per_cap) );
+             minvaly = Math.min(minvaly, parseFloat(dataset[i].life_expectancy) );
+             //document.write('<p>Label: ' + label_array[i] + '</p>');
+          }
+
+          maxvalx = d3.select('#gdp_per_cap_max_range').property("value");
+          // console.log(maxvalx);
+          // dataset[i].population
+          // maxvalx = (1 + Math.floor(maxvalx / 10)) * 10;   
+          // maxvaly = (10 + Math.floor(maxvaly / 10)) * 10;
+          // minvalx = (Math.floor(minvalx / 10)) * 10;   
+          // minvaly = (Math.floor(minvaly / 10)) * 10 - 100; 
+          // document.write('<p>Max X: ' + minvalx + '</p>'); 
+          // document.write('<p>Max Y: ' + minvaly + '</p>');
+          // maxvalx = d3.max(dataset.map(function(d) { return d.gdp / d.population; }));
+          // minvalx = d3.min(dataset.map(function(d) { return d.gdp / d.population; }));
+          // texport_max.push(d3.max(targetData.map(function(d) { return d.total_export; })))
+          // 67804.12528537509
+
+          var w = 800,
+              h = 300,
+              p = 80,
+              x = d3.scale.linear().domain([ minvalx, maxvalx]).range([0, w]),
+              y = d3.scale.linear().domain([ minvaly, maxvaly ]).range([h, 0]);
+          // console.log(minvalx,maxvalx,minvaly,maxvaly)
+
+          // var w = 815,
+          //     h = 500,
+          //     p = 80,
+          //     x = d3.scale.linear().domain([ minvalx, maxvalx]).range([0, w]),
+          //     y = d3.scale.linear().domain([ minvaly, maxvaly ]).range([h, 0]);
+          //     console.log(minvalx,maxvalx,minvaly,maxvaly)
+
+          var vis = d3.select("#scatter-bubble-chart")
+             .data([val_array])
+           .append("svg:svg")
+             .attr("width", w + p * 2)
+             .attr("height", h + p * 2)
+           .append("svg:g")
+             .attr("transform", "translate(" + p + "," + p + ")");
+
+
+          var rules = vis.selectAll("g.rule")
+            .data(x.ticks(10))
+            .enter().append("svg:g")
+            .attr("class", "rule");
+
+         // Draw grid lines
+         rules.append("svg:line")
+          .attr("x1", x)
+          .attr("x2", x)
+          .attr("y1", 0)
+          .attr("y2", h - 1);
+
+         rules.append("svg:line")
+          .attr("class", function(d) { return d ? null : "axis"; })
+          .data(y.ticks(10))
+          .attr("y1", y)
+          .attr("y2", y)
+          .attr("x1", 0)
+          .attr("x2", w - 10);
+
+         // Place axis tick labels
+         rules.append("svg:text")
+          .attr("x", x)
+          .attr("y", h + 15)
+          .attr("dy", ".71em")
+          .attr("text-anchor", "middle")
+          .text(x.tickFormat(10))
+          .text(String);
+
+         rules.append("svg:text")
+          .data(y.ticks(12))
+          .attr("y", y)
+          .attr("x", -10)
+          .attr("dy", ".35em")
+          .attr("text-anchor", "end")
+          .text(y.tickFormat(5));
+
+         // var color = d3.scale.linear()
+         // .domain([1995,2012])
+         // .range(["lightblue","blue"]);
+
+          var dotscale = 5;
+          var color = d3.scale.category10(); //color
+
+          // Draw xy scatterplot
+          vis.selectAll("circle.line")
+             .data(val_array)
+           .enter().append("svg:circle")
+             .attr("class", "line")
+             .attr("fill", function(d) { 
+              console.log(d);
+              return color(d.continent)})
+             .attr("cx", function(d) { return x(d.x); })
+             .attr("cy", function(d) { return y(d.y) - 5; })
+             .attr("r", function(d) { return Math.sqrt( dotscale*d.size / Math.PI); });
+
+          vis.selectAll("g.rule")
+              .data(val_array)
+            .append("svg:text")
+               .attr("text-anchor", "middle")
+               .attr("x", function(d) { return x(d.x); })
+               .attr("y", function(d) { return y(d.y) + Math.sqrt( dotscale*d.size / Math.PI) + 4; })
+               .attr("dy", ".3em")
+               .attr("fill", "black")
+               .attr("clip", "inherit")
+               .attr("class", "bubble_label")
+               .text(function(d) { return d.label; });
+
+           vis.selectAll("g.rule")
+              .data(val_array)
+             .enter().append("svg:text")
+               .attr("text-anchor", "middle")
+               .attr("x", function(d) { return x(d.x); })
+               .attr("y", function(d) { return y(d.y) + Math.sqrt( dotscale*d.size / Math.PI) + 4; })
+               .attr("dy", ".3em")
+               .attr("fill", "black")
+               .attr("clip", "inherit")
+               .attr("class", "bubble_label")
+               .text(function(d) { return d.label; });
+
+      })
+
+      function rangechanged(vdataset,newVal){
+
+            var indexed_data = []
+            var tmpdata = []
+
+            vdataset.map(function(d,i){
+                if (d.year == newVal){
+                    tmpdata.push(d);  
+                }
+                indexed_data[newVal] = tmpdata
+            });
+            return indexed_data[newVal]
+      };
+    }
+    function change_curr_selection(input_value){
+      curr_selection = input_value.value;
+      bubble_plot()
+    };
+      </script> 
+  </body>
+</html>

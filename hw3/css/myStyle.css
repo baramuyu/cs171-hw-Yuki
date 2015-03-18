@@ -24,3 +24,7 @@ body{
     fill-opacity: .5;
     pointer-events: none;
 }
+.area {
+    fill: lightsteelblue;
+    stroke-width: 0;
+}
