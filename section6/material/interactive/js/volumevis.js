@@ -62,6 +62,14 @@ VolumeVis.prototype.initVis = function(){
       .y0(this.height)
       .y1(function(d) { return that.y(d.calls.length); });
 
+    this.brush = d3.svg.brush()
+                  .on("brush", function(){
+                    console.log(that.brush.extent());
+                  });
+
+    this.svg.append("g")
+      .attr("class", "brush");
+
     // Add axes visual elements
     this.svg.append("g")
         .attr("class", "x axis")
@@ -130,6 +138,12 @@ VolumeVis.prototype.updateVis = function(){
 
     path.exit()
       .remove();
+
+    this.brush.x(this.x);
+    this.svg.select(".brush")
+        .call(this.brush)
+      .selectAll("rect")
+        .attr("height", this.height)
 }
 
 

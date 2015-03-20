@@ -60,6 +60,11 @@ VolumeVis.prototype.initVis = function(){
       .y0(this.height)
       .y1(function(d) { return that.y(d.calls.length); });
 
+    this.brush = d3.svg.brush();
+
+    this.svg.append("g")
+      .attr("class", "brush");
+
     // Add axes visual elements
     this.svg.append("g")
         .attr("class", "x axis")

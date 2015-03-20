@@ -21,10 +21,10 @@ body{
 
 .brush{
     fill: darkgrey;
-    fill-opacity: .5;
+    fill-opacity: .6;
     pointer-events: none;
 }
 .area {
-    fill: lightsteelblue;
+    fill: steelblue;
     stroke-width: 0;
 }

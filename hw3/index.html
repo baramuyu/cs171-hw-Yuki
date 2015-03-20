@@ -55,9 +55,9 @@
             <div class="col-md-9" id="countVis"></div>
             <div class="col-md-3" id="ageVis">
                 <!-- TODO: delete placeholder svg element -->
-                <svg width="230" height="330" style="background-color: lightcoral">
+<!--                 <svg width="230" height="330" style="background-color: lightcoral">
                     <text x="50" y="50">HERE should be AgeVis</text>
-                </svg>
+                </svg> -->
             </div>
         </div>
 
@@ -91,10 +91,21 @@ $(function(){ // this function is called after the HTML document is fully loaded
         var svg_count = d3.select("#countVis").append("svg")
                 .attr("width", 750)
                 .attr("height", 350);
+
+        var svg_age = d3.select("#ageVis").append("svg")
+                .attr("width", 230)
+                .attr("height", 330);
+
         // TODO: bind the eventHandler to the Vis Objects
         // events will be created from the CountVis object (nothing to do here)
         // events will be consumed by the PrioVis and AgeVis object (binding should happen here)
         CountVis = new CountVis(svg_count, allData, metaData, MyEventHandler);
+        AgeVis = new AgeVis(svg_age, allData, metaData);
+
+        $(MyEventHandler).bind("selectionChanged", function(event, selDateStart, selDateEnd){
+            debugger;
+            AgeVis.onSelectionChange(selDateStart,selDateEnd);
+        });
 
     }
 

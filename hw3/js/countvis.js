@@ -63,17 +63,31 @@ CountVis.prototype.initVis = function(){
       .y0(this.height)
       .y1(function(d) { return that.y(d.count); });
 
-      //debugger;
+
+    this.brush = d3.svg.brush()
+                  .on("brush", function(){
+                    console.log(that.brush.extent());
+                    //trigger
+                    $(that.eventHandler).trigger("selectionChanged", that.brush.extent());
+
+                  });
+    this.svg.append("g")
+        .attr("class", "brush");
+
     // creates axis and scales
     this.x = d3.time.scale()
       .range([20, this.width]);
 
-    this.y = d3.scale.linear()
-      .range([this.height, 0]);
+    //this.y = d3.scale.linear()
+    //this.y = d3.scale.sqrt()
+    this.y = d3.scale.pow()
+        .exponent(1)
+        .range([this.height, 0]);
 
     this.xAxis = d3.svg.axis()
       .scale(this.x)
       .orient("bottom");
+
 
     this.yAxis = d3.svg.axis()
       .scale(this.y)
@@ -105,7 +119,6 @@ CountVis.prototype.initVis = function(){
     this.wrangleData();
 
     // call the update method
-    //this.svg = this.parentElement
     this.updateVis();
 }
 
@@ -157,6 +170,12 @@ CountVis.prototype.updateVis = function(){
     path.exit()
       .remove();
 
+    this.brush.x(this.x);
+    this.svg.select(".brush")
+        .call(this.brush)
+      .selectAll("rect")
+        .attr("height", this.height);
+
 }
 
 /**
@@ -200,16 +219,24 @@ CountVis.prototype.addSlider = function(svg){
 
     // TODO: Think of what is domain and what is range for the y axis slider !!
     var sliderScale = d3.scale.linear().domain([0,200]).range([0,200])
+    var powScale = d3.scale.linear().domain([0,200]).range([0.1,1])
 
     var sliderDragged = function(){
         var value = Math.max(0, Math.min(200,d3.event.y));
 
         var sliderValue = sliderScale.invert(value);
 
-        // TODO: do something here to deform the y scale
-        console.log("Y Axis Slider value: ", sliderValue);
+        //updating y scale
+        that.y = d3.scale.pow()
+            .exponent(powScale(sliderValue))
+            .range([that.height, 0]);
 
+        //updating y axis
+        that.yAxis = d3.svg.axis()
+          .scale(that.y)
+          .orient("left");
 
+        //slider position changing
         d3.select(this)
             .attr("y", function () {
                 return sliderScale(sliderValue);
@@ -236,7 +263,7 @@ CountVis.prototype.addSlider = function(svg){
 
     sliderGroup.append("rect").attr({
         "class":"sliderHandle",
-        y:0,
+        y:200,
         width:20,
         height:10,
         rx:2,
@@ -244,7 +271,6 @@ CountVis.prototype.addSlider = function(svg){
     }).style({
         fill:"#333333"
     }).call(sliderDragBehaviour)
-
 
 }
 
