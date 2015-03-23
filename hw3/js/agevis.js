@@ -57,7 +57,7 @@ AgeVis.prototype.initVis = function(){
 
     this.y = d3.scale.linear()
         //.range([0, this.height]);
-        .range([0, 300]);
+        .range([0, 284]);
 
     this.xAxis = d3.svg.axis()
       .scale(this.x)
@@ -76,7 +76,7 @@ AgeVis.prototype.initVis = function(){
 
     this.svg.append("g")
         .attr("class", "y axis")
-        .attr("transform", "translate(30,0)")
+        .attr("transform", "translate(30,5)")
       .append("text")
         .attr("transform", "rotate(-90)")
         .attr("y", 6)
@@ -105,11 +105,6 @@ AgeVis.prototype.wrangleData= function(_filterFunction, start, end){
     //// if you don't pass options -- set the default options
     //// the default is: var options = {filter: function(){return true;} }
     //var options = _options || {filter: function(){return true;}};
-
-
-
-
-
 }
 
 
@@ -141,9 +136,7 @@ AgeVis.prototype.updateVis = function(){
 
     this.x.domain(d3.extent(this.displayData, function(d) { return d; }));
     this.y.domain(d3.extent(this.displayData, function(d, i) { return i; })); //same as this.y.domain([0,98])
-    
 
-    debugger;
 
     // updates axis
     this.svg.select(".x.axis")
@@ -166,8 +159,6 @@ AgeVis.prototype.updateVis = function(){
 
     path.exit()
       .remove();
-
-
 }
 
 
@@ -235,7 +226,6 @@ AgeVis.prototype.filterAndAggregate = function(_filter,start,end){
     console.log(res);
 
     return res;
-
 }
 
 
