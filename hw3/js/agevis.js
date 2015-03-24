@@ -82,7 +82,7 @@ AgeVis.prototype.initVis = function(){
         .attr("y", 6)
         .attr("dy", ".71em")
         .style("text-anchor", "end")
-        .text("Ages");
+        .text("Age distribution");
 
     // filter, aggregate, modify data
     this.wrangleData(this.data, null, null);
