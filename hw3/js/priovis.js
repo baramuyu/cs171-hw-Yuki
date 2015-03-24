@@ -13,84 +13,6 @@ PrioVis = function(_parentElement, _data, _metaData){
 
 }
 
-// PrioVis.prototype.initVis = function(){
-
-//     var that = this; 
-
-//     // construct or select SVG
-//     this.svg = this.parentElement
-
-//     // creates axis and scales
-//     // this.x = d3.scale.ordinal()
-//     //     .rangeRoundBands([0, this.width]);
-//     this.x = d3.scale.ordinal()
-//         .rangeRoundBands([0, this.width-100],.1);
-
-//     this.y = d3.scale.linear()
-//         .range([this.height, 0]);
-
-//     this.xAxis = d3.svg.axis()
-//       .scale(this.x)
-//       .orient("bottom")
-//       .ticks(16);
-
-//     this.yAxis = d3.svg.axis()
-//       .scale(this.y)
-//       .orient("left");
-
-//     // Add axes visual elements
-//     this.svg.append("g")
-//         .attr("class", "x axis")
-//         .attr("transform", "translate(70," + this.height + ")")
-
-//     this.svg.append("g")
-//         .attr("class", "y axis")
-//         .attr("transform", "translate(50,5)")
-//       .append("text")
-//         .attr("transform", "rotate(-90)")
-//         .attr("y", 6)
-//         .attr("dy", ".71em")
-//         .style("text-anchor", "end")
-//         .text("Distribution of priorities");
-
-//     // filter, aggregate, modify data
-//     this.wrangleData(this.data, null, null);
-
-//     this.x.domain(this.displayData.map(function(d) { return d.title; })); 
-//     this.y.domain(d3.extent(this.displayData, function(d) { return d.count; }));
-
-//     // updates axis
-//     this.svg.select(".x.axis")
-//         .call(this.xAxis);
-
-//     this.svg.select(".y.axis")
-//         .call(this.yAxis)
-
-//     var g = this.svg.append("g")
-//       .attr("transform", "translate(55,0)");
-
-//     // Groups for countries
-//     groups = g
-//       .attr("class", "gParent")
-//       .selectAll("g.group")
-//       .data(this.displayData, function(d){return d.title})
-
-//     // Create a group for each country
-//     groups_enter = groups.enter()
-//       .append("g")
-//       .attr("class", "group")
-//       .attr("transform", function(d) { 
-//         return "translate(" + that.x(d.title) +", 0)"; 
-//       });
-
-//     // Bar details
-//     bars = groups_enter
-//       .append("rect")
-//       .attr("class","rect");
-
-//     // call the update method
-//     //this.updateVis();
-// }
 PrioVis.prototype.initVis = function(){
 
     var that = this; // read about the this
@@ -164,7 +86,7 @@ PrioVis.prototype.updateVis = function(){
     that = this;
 
     this.x.domain(d3.extent(this.displayData, function(d, i) { return i; })); //same as this.y.domain([0,98])
-	this.y.domain([0, d3.max(this.displayData.map(function(d){return d;}))]);
+	this.y.domain([0, d3.max(this.displayData.map(function(d){return d.count;}))]);
 
     // updates axis
     this.svg.select(".x.axis")
@@ -197,10 +119,10 @@ PrioVis.prototype.updateVis = function(){
     // Update all inner rects and texts (both update and enter sets)
     bar.select("rect")
       .attr("x", 0)
-      .attr("y", function(d){return that.y(d)})
+      .attr("y", function(d){return that.y(d.count)})
       .attr("width", this.width / 20)
       .transition()
-      .attr("height", function(d, i) {return that.height - that.y(d); })
+      .attr("height", function(d, i) {return that.height - that.y(d.count); })
       // .style("fill", function(d,i) {
       //   return that.color(d.type);
       // });
@@ -220,7 +142,10 @@ PrioVis.prototype.filterAndAggregate = function(_filter,start,end){
 
     // create an array of values for age 0-100
     var res = d3.range(16).map(function () {
-        return 0;
+        return {
+        	title: "",
+        	count: 0
+        };
     });
 
     // Set filter to a function that accepts all items
@@ -243,10 +168,15 @@ PrioVis.prototype.filterAndAggregate = function(_filter,start,end){
     // TODO: implement the function that filters the data and sums the values
     filter.forEach(function(d){
         for (var i = 0; i < 16; i++) {
-            res[i] += d.prios[i];
+            res[i].count += d.prios[i];
         };
     })
-    console.log(res);
+    
+    i = 0;
+    while(i<16){
+    	res[i].title = this.metaData.prios[i];
+    	i++;
+    }
 
     return res;
 }
