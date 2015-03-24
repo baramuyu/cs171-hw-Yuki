@@ -28,3 +28,6 @@ body{
     fill: steelblue;
     stroke-width: 0;
 }
+.prios_text{
+    font: 15px; 
+}

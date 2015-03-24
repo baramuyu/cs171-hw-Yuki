@@ -5,9 +5,9 @@ PrioVis = function(_parentElement, _data, _metaData){
     this.displayData = [];
 
     // defines constants
-    this.margin = {top: 20, right: 0, bottom: 20, left: 60},
+    this.margin = {top: 20, right: 0, bottom: 300, left: 60},
     this.width = 750 - this.margin.left - this.margin.right,
-    this.height = 440 - this.margin.top - this.margin.bottom;
+    this.height = 540 - this.margin.top - this.margin.bottom;
 
     this.initVis();
 
@@ -22,8 +22,10 @@ PrioVis.prototype.initVis = function(){
 
     //TODO: create axis and scales
     // creates axis and scales
-    this.x = d3.scale.linear()
-        .range([this.margin.left, this.width]);
+    // this.x = d3.scale.linear()
+    //     .range([this.margin.left, this.width]);
+    this.x = d3.scale.ordinal()
+        .rangeRoundBands([this.margin.left, this.width]);
 
     this.y = d3.scale.linear()
         .range([this.height, 0]);
@@ -52,7 +54,7 @@ PrioVis.prototype.initVis = function(){
         .text("Priorities");
 
     // filter, aggregate, modify data
-    this.wrangleData(null);
+    this.wrangleData(this.data,null,null);
 
     // call the update method
     this.updateVis();
@@ -85,12 +87,18 @@ PrioVis.prototype.updateVis = function(){
 
     that = this;
 
-    this.x.domain(d3.extent(this.displayData, function(d, i) { return i; })); //same as this.y.domain([0,98])
+    this.x.domain(this.displayData.map(function(d) { return d.title; })); //same as this.y.domain([0,98])
 	this.y.domain([0, d3.max(this.displayData.map(function(d){return d.count;}))]);
 
     // updates axis
     this.svg.select(".x.axis")
-        .call(this.xAxis);
+        .call(this.xAxis)
+        .selectAll("text")  
+        .style("text-anchor", "start")
+        .attr("dx", ".8em")
+        .attr("dy", "-.15em")
+        .style("font-size", "13px")
+        .attr("transform", function(d) {return "rotate(65)"});
 
     this.svg.select(".y.axis")
         .call(this.yAxis)
@@ -103,14 +111,14 @@ PrioVis.prototype.updateVis = function(){
     var bar_enter = bar.enter().append("g");
 
     // Append a rect and a text only for the Enter set (new g)
-    bar_enter.append("rect");
-    // bar_enter.append("text");
+    bar_enter.append("rect")
+    	.attr("fill", function(d, i){return that.metaData.priorities[i]["item-color"]});
 
     // Add attributes (position) to all bars
     bar
       .attr("class", "bar")
       .transition()
-      .attr("transform", function(d, i) { return "translate(" + that.x(i) + ",0)"; })
+      .attr("transform", function(d) { return "translate(" + that.x(d.title) + ",0)"; })
 
     // Remove the extra bars
     bar.exit()
@@ -119,13 +127,10 @@ PrioVis.prototype.updateVis = function(){
     // Update all inner rects and texts (both update and enter sets)
     bar.select("rect")
       .attr("x", 0)
-      .attr("y", function(d){return that.y(d.count)})
-      .attr("width", this.width / 20)
-      .transition()
       .attr("height", function(d, i) {return that.height - that.y(d.count); })
-      // .style("fill", function(d,i) {
-      //   return that.color(d.type);
-      // });
+      .attr("width", this.width / 20)
+      .transition().duration(0)
+      .attr("y", function(d){return that.y(d.count)})
 
 }
 
@@ -151,16 +156,14 @@ PrioVis.prototype.filterAndAggregate = function(_filter,start,end){
     // Set filter to a function that accepts all items
     // ONLY if the parameter _filter is NOT null use this parameter
     var filter = function(){return true;}
-    if (_filter != null){
-        filter = _filter;
-    }else{
-        return res;
-    }
+    filter = _filter;
+    if (start != null){
     //Dear JS hipster, a more hip variant of this construct would be:
     // var filter = _filter || function(){return true;}
         filter = filter.filter(function(d){ 
             return start <= d.time && d.time <= end;
         })
+    }
 
     var that = this;
 
@@ -174,7 +177,7 @@ PrioVis.prototype.filterAndAggregate = function(_filter,start,end){
     
     i = 0;
     while(i<16){
-    	res[i].title = this.metaData.prios[i];
+    	res[i].title = this.metaData.priorities[i]["item-title"];
     	i++;
     }
 

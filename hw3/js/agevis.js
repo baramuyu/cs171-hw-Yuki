@@ -85,7 +85,7 @@ AgeVis.prototype.initVis = function(){
         .text("Ages");
 
     // filter, aggregate, modify data
-    this.wrangleData(null);
+    this.wrangleData(this.data, null, null);
 
     // call the update method
     this.updateVis();
@@ -154,7 +154,7 @@ AgeVis.prototype.updateVis = function(){
       .attr("class", "area");
 
     path
-      .transition()
+      .transition().duration(0)
       .attr("d", this.area);
 
     path.exit()
@@ -203,16 +203,14 @@ AgeVis.prototype.filterAndAggregate = function(_filter,start,end){
     // Set filter to a function that accepts all items
     // ONLY if the parameter _filter is NOT null use this parameter
     var filter = function(){return true;}
-    if (_filter != null){
-        filter = _filter;
-    }else{
-        return res;
-    }
+    filter = _filter;
+    if (start != null){
     //Dear JS hipster, a more hip variant of this construct would be:
     // var filter = _filter || function(){return true;}
         filter = filter.filter(function(d){ 
             return start <= d.time && d.time <= end;
         })
+    }
 
     var that = this;
 
@@ -223,7 +221,6 @@ AgeVis.prototype.filterAndAggregate = function(_filter,start,end){
             res[i] += d.ages[i];
         };
     })
-    console.log(res);
 
     return res;
 }
