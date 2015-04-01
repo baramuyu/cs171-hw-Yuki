@@ -1,17 +1,4 @@
 /**
- * Created by Hendrik Strobelt (hendrik.strobelt.com) on 1/28/15.
- */
-
-
-/*
- *
- * ======================================================
- * We follow the vis template of init - wrangle - update
- * ======================================================
- *
- * */
-
-/**
  * CountVis object for HW3 of CS171
  * @param _parentElement -- the HTML or SVG element (D3 node) to which to attach the vis
  * @param _data -- the data array
@@ -43,40 +30,25 @@ CountVis.prototype.initVis = function(){
 
     var that = this; // read about the this
 
-    //TODO: implement here all things that don't change
-    //TODO: implement here all things that need an initial status
-    // Examples are:
-    // - construct SVG layout
-    // - create axis
-    // -  implement brushing !!
     // --- ONLY FOR BONUS ---  implement zooming
-
-    this.svg = this.parentElement.append("svg")
+    //svg
+    this.svg = this.parentElement
             .attr("width", this.width + this.margin.left + this.margin.right)
             .attr("height", this.height + this.margin.top + this.margin.bottom)
         .append("g")
-            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
+            .attr("id", "zooming")
 
+    //area
     this.area = d3.svg.area()
       .interpolate("monotone")
       .x(function(d) { return that.x(d.time); })
       .y0(this.height)
       .y1(function(d) { return that.y(d.count); });
 
-
-    this.brush = d3.svg.brush()
-                  .on("brush", function(){
-                    console.log(that.brush.extent());
-                    //trigger
-                    $(that.eventHandler).trigger("selectionChanged", that.brush.extent());
-
-                  });
-    this.svg.append("g")
-        .attr("class", "brush");
-
     // creates axis and scales
     this.x = d3.time.scale()
-      .range([20, this.width]);
+      .range([10, this.width]);
 
     //this.y = d3.scale.linear()
     //this.y = d3.scale.sqrt()
@@ -84,10 +56,27 @@ CountVis.prototype.initVis = function(){
         .exponent(1)
         .range([this.height, 0]);
 
+    //zoom
+    this.zoom = d3.behavior.zoom()
+        .scaleExtent([1, 2])
+        .on("zoom", that.zoomed);
+
+    //brush
+    this.brush = d3.svg.brush()
+                  .on("brush", function(){
+                    //console.log(that.brush.extent());
+
+                    //trigger
+                    $(that.eventHandler).trigger("selectionChanged", that.brush.extent());
+                  });
+
+    this.svg.append("g")
+        .attr("class", "brush")
+        .call(this.zoom);
+
     this.xAxis = d3.svg.axis()
       .scale(this.x)
       .orient("bottom");
-
 
     this.yAxis = d3.svg.axis()
       .scale(this.y)
@@ -100,20 +89,19 @@ CountVis.prototype.initVis = function(){
 
     this.svg.append("g")
         .attr("class", "y axis")
+        //.attr("transform", "translate(90,20)")
       .append("text")
-        .attr("transform", "rotate(-90)")
+        .attr("transform", "translate(10,0)")
         .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
+        .style("text-anchor", "start")
+        .style("font-size","15px")
         .text("Votes");
 
-    // TODO: modify this to append an svg element, not modify the current placeholder SVG element
     // constructs SVG layout
     this.svg_slider = this.parentElement.append("svg")
 
-    //TODO: implement the slider -- see example at http://bl.ocks.org/mbostock/6452972
+    //the slider -- see example at http://bl.ocks.org/mbostock/6452972
     this.addSlider(this.svg_slider)
-
 
     // filter, aggregate, modify data
     this.wrangleData();
@@ -161,7 +149,7 @@ CountVis.prototype.updateVis = function(){
 
     path.enter()
       .append("path")
-      .attr("class", "area");
+      .attr("class", "area")
 
     path
       .transition()
@@ -261,20 +249,29 @@ CountVis.prototype.addSlider = function(svg){
         fill:"lightgray"
     })
 
-    sliderGroup.append("rect").attr({
-        "class":"sliderHandle",
-        y:200,
-        width:20,
-        height:10,
-        rx:2,
-        ry:2
-    }).style({
-        fill:"#333333"
-    }).call(sliderDragBehaviour)
+    sliderGroup.append("rect")
+        .attr({
+            "class":"sliderHandle",
+            y:200,
+            width:20,
+            height:10,
+            rx:2,
+            ry:2
+        })
+        .style({fill:"#333333"})
+        .call(sliderDragBehaviour)
 
 }
 
-
+var currentScale = 1;
+CountVis.prototype.zoomed = function(){
+    var that = this;
+    if(d3.event != null && currentScale != d3.event.scale ){
+        d3.select("#zooming")
+            .attr("transform", "translate("+(100+d3.event.translate[0])+",20)scale(" + d3.event.scale + ",1)")
+        currentScale = d3.event.scale
+    }
+}
 
 
 

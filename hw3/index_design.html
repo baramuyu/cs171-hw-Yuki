@@ -20,6 +20,8 @@
     <script src = "js/priovis.js"></script>
     <script src = "js/agevis.js"></script>
     <script src = "js/countvis.js"></script>
+    <script src = "js/radar.js"></script>
+    <script src = "js/RadarChart.js"></script>
     <script src="http://d3js.org/queue.v1.min.js"></script>
 
     <!-- stylesheet-->
@@ -51,7 +53,10 @@
             <div class="col-md-3" id="ageVis">
             </div>
         </div>
-
+        <div class="row">
+            <div class="col-md-14" id="radar">
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-12" id="prioVis">
             </div>
@@ -86,12 +91,17 @@ $(function(){ // this function is called after the HTML document is fully loaded
                 .attr("width", 750)
                 .attr("height", 540);
 
+        var svg_radar = d3.select("#radar").append("svg")
+                .attr("width", 750)
+                .attr("height", 900);
+
         // TODO: bind the eventHandler to the Vis Objects
         // events will be created from the CountVis object (nothing to do here)
         // events will be consumed by the PrioVis and AgeVis object (binding should happen here)
         CountVis = new CountVis(svg_count, allData, metaData, MyEventHandler);
         AgeVis = new AgeVis(svg_age, allData, metaData);
         PrioVis = new PrioVis(svg_prio, allData, metaData);
+        RadarVis = new RadarVis(svg_radar, allData, metaData);
 
         $(MyEventHandler).bind("selectionChanged", function(event, selDateStart, selDateEnd){
             var startDate = dateFormatter(new Date(selDateStart))
@@ -105,6 +115,7 @@ $(function(){ // this function is called after the HTML document is fully loaded
 
             AgeVis.onSelectionChange(selDateStart,selDateEnd);
             PrioVis.onSelectionChange(selDateStart,selDateEnd);
+            RadarVis.onSelectionChange(selDateStart,selDateEnd);
 
             currentBrush
                 .text(dateFormatter(new Date(selDateStart))+"~"+dateFormatter(new Date(selDateEnd)))

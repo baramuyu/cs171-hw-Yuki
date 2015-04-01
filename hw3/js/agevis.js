@@ -78,10 +78,11 @@ AgeVis.prototype.initVis = function(){
         .attr("class", "y axis")
         .attr("transform", "translate(30,5)")
       .append("text")
-        .attr("transform", "rotate(-90)")
+        .attr("transform", "translate(10,0)")
         .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
+        // .attr("dy", ".71em")
+        .style("text-anchor", "start")
+        .style("font-size","15px")
         .text("Age distribution");
 
     // filter, aggregate, modify data

@@ -17,13 +17,8 @@ PrioVis.prototype.initVis = function(){
 
     var that = this; // read about the this
 
-    //TODO: construct or select SVG
     this.svg = this.parentElement
 
-    //TODO: create axis and scales
-    // creates axis and scales
-    // this.x = d3.scale.linear()
-    //     .range([this.margin.left, this.width]);
     this.x = d3.scale.ordinal()
         .rangeRoundBands([this.margin.left, this.width]);
 
@@ -47,10 +42,10 @@ PrioVis.prototype.initVis = function(){
         .attr("class", "y axis")
         .attr("transform", "translate(50,5)")
       .append("text")
-        .attr("transform", "rotate(-90)")
+        .attr("transform", "translate(10,0)")
         .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
+        .style("text-anchor", "start")
+        .style("font-size","15px")
         .text("Distribution of priorities");
 
     // filter, aggregate, modify data
@@ -77,13 +72,6 @@ PrioVis.prototype.updateVis = function(){
     // you might be able to pass some options as parameter _option
     // But it's not needed to solve the task.
     // var options = _options || {};
-
-
-    // TODO: implement...
-    // TODO: ...update scales
-    // TODO: ...update graphs
-    // TODO: implement update graphs (D3: update, enter, exit)
-    // updates scales
 
     that = this;
 
@@ -136,7 +124,6 @@ PrioVis.prototype.updateVis = function(){
 
 PrioVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
 
-    // TODO: call wrangle function
     this.wrangleData(this.data,selectionStart,selectionEnd)
 
     this.updateVis();
@@ -145,7 +132,7 @@ PrioVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
 
 PrioVis.prototype.filterAndAggregate = function(_filter,start,end){
 
-    // create an array of values for age 0-100
+    // create an array of values for prios 0-15
     var res = d3.range(16).map(function () {
         return {
         	title: "",
@@ -168,7 +155,6 @@ PrioVis.prototype.filterAndAggregate = function(_filter,start,end){
     var that = this;
 
     // accumulate all values that fulfill the filter criterion
-    // TODO: implement the function that filters the data and sums the values
     filter.forEach(function(d){
         for (var i = 0; i < 16; i++) {
             res[i].count += d.prios[i];
@@ -176,6 +162,7 @@ PrioVis.prototype.filterAndAggregate = function(_filter,start,end){
     })
     
     i = 0;
+    //apply item-title from metaData
     while(i<16){
     	res[i].title = this.metaData.priorities[i]["item-title"];
     	i++;
