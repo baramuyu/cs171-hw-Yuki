@@ -11,6 +11,7 @@ var margin = {
 
 var width = 1060 - margin.left - margin.right;
 var height = 800 - margin.bottom - margin.top;
+var centered;
 
 var bbVis = {
     x: 100,
@@ -33,8 +34,10 @@ var svg = canvas.append("g").attr({
         transform: "translate(" + margin.left + "," + margin.top + ")"
     });
 
+var g = svg.append("g");
 
-var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);//.precision(.1);
+var projection = d3.geo.albersUsa()
+    .translate([width / 2, height / 2]);//.precision(.1);
 var path = d3.geo.path().projection(projection);
 
 
@@ -42,15 +45,29 @@ var dataSet = {};
 
 
 
-function loadStations() {
+function loadStations() { //(3)
     d3.csv("../data/NSRDB_StationsMeta.csv",function(error,data){
         //....
+        var screencoord
+        //var screencoord = projection([longitude, latitude]);
+        g.selectAll(".station")
+            .data(data)
+            .enter().append("circle")
+            .attr("r", 5)
+            .attr("cx", function(d){ 
+                screencoord = projection([d["ISH_LON(dd)"], d["ISH_LAT (dd)"]]);
+                if(screencoord)
+                    return screencoord[0]; })
+            .attr("cy", function(d){ 
+                screencoord = projection([d["ISH_LON(dd)"], d["ISH_LAT (dd)"]]);
+                if(screencoord)
+                    return screencoord[1]; })
+            .attr("fill","blue")
+            .attr("class","station")
     });
 }
 
-
-function loadStats() {
-
+function loadStats() { //(2)
     d3.json("../data/reducedMonthStationHour2003_2004.json", function(error,data){
         completeDataSet= data;
 
@@ -58,8 +75,34 @@ function loadStats() {
 		
         loadStations();
     })
-
 }
+
+function clicked(d) {
+  var x, y, k;
+
+  if (d && centered !== d) {
+    var centroid = path.centroid(d);
+    x = centroid[0];
+    y = centroid[1];
+    k = 4;
+    centered = d;
+  } else {
+    x = width / 2;
+    y = height / 2;
+    k = 1;
+    centered = null;
+  }
+
+  g.selectAll("path")
+      .classed("active", centered && function(d) { return d === centered; });
+
+  g.transition()
+      .duration(750)
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+      .style("stroke-width", 1.5 / k + "px");
+}
+
+//(1)Start from here
 
 
 d3.json("../data/us-named.json", function(error, data) {
@@ -69,10 +112,20 @@ d3.json("../data/us-named.json", function(error, data) {
 
     //svg.selectAll(".country").data(usMap).enter().... 
     // see also: http://bl.ocks.org/mbostock/4122298
+    g.selectAll(".country")
+        .data(usMap)
+        .enter().append("path")
+        .attr("d", path)
+        .attr("class","country")
+        .on("click", clicked);
 
-    loadStats();
+    // g.append("path")
+    //   .datum(topojson.mesh(data, data.objects.states, function(a, b) { return a !== b; }))
+    //   .attr("id", "state-borders")
+    //   .attr("d", path);
+
+    loadStations();
 });
-
 
 
 // ALL THESE FUNCTIONS are just a RECOMMENDATION !!!!
