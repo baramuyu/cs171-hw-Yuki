@@ -24,7 +24,7 @@
         var timeParser = d3.time.format("%b %-d, %Y %X %p");
         var monthNameFormat = d3.time.format("%b");
         var hourlyFormat = d3.time.format("%X %p");
-// ---
+
         var aggregateMap = {}
 
         for (var station in data) {
@@ -59,37 +59,13 @@
 
                     aggregateMap[month]= monthlist
 
-
-
-                    // debugger;
                 })
             }
         }
 
-
-//     data[0].forEach(function(d){
-
-//         debugger;
-//     var firstLetter = d[0]; // get first Letter (strings are arrays of characters)
-//     var secondLetter = d[1]; // just for explanation -- the second letter
-
-//     var nameList = aggregateMap[firstLetter] // get the value for key "firstLetter"
-
-//     if (nameList==undefined) // if there is no entry yet...
-//         nameList = []; //  .. then create one !!
-
-//     nameList.push(d) // add name to nameList
-
-//     aggregateMap[firstLetter]= nameList
-
-// })
-// console.log(aggregateMap);
-// ---
         reducedDataSet = aggregateMap;
         
         saveToFile(reducedDataSet,"reducedMonthStationHour2003_2004.json")
-
-
 
     })
 
@@ -102,9 +78,6 @@
         saveAs(blob, filename);
     }
 
-
 </script>
-
-
 </body>
 </html>
